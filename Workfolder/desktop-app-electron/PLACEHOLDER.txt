@@ -1,0 +1,9 @@
+# RoadRouteCardMaker Desktop App (Electron)
+
+This is a placeholder for the Electron app. To get started:
+
+1. Open a terminal in this folder.
+2. Run:
+   npm init -y
+   npm install electron --save-dev
+3. Add your Electron app code.

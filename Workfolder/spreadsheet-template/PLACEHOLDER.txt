@@ -1,0 +1,6 @@
+# RoadRouteCardMaker Spreadsheet Template
+
+This is a placeholder for the Excel/Sheets template. To get started:
+
+1. Create a new Excel file here (e.g., route_card_template.xlsx).
+2. Design your route card layout.

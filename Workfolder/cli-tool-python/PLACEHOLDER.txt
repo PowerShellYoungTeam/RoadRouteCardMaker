@@ -1,0 +1,7 @@
+# RoadRouteCardMaker CLI Tool (Python)
+
+This is a placeholder for the Python CLI tool. To get started:
+
+1. Add your Python script here (e.g., route_card.py).
+2. Run it with:
+   python route_card.py
