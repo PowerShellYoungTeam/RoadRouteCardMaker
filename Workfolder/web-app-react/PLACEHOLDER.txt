@@ -1,8 +1,0 @@
-# RoadRouteCardMaker Web App (React)
-
-This is a placeholder for the React app. To get started:
-
-1. Open a terminal in this folder.
-2. Run:
-   npx create-react-app .
-3. After setup, replace the default content with your route card UI.

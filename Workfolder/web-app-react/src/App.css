@@ -1,0 +1,134 @@
+.App {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    padding: 2rem;
+    background: #f7f7f7;
+    min-height: 100vh;
+}
+
+.App-logo {
+    height: 40vmin;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .App-logo {
+        animation: App-logo-spin infinite 20s linear;
+    }
+}
+
+.App-header {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
+}
+
+.App-link {
+    color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.route-form {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.route-form label {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.route-form input {
+    margin-left: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.route-card-preview {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.route-card {
+    background: #fff;
+    border: 2px solid #1976d2;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+}
+
+.route-card p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.route-legs-section {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.route-legs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.route-legs-table th,
+.route-legs-table td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.route-legs-table th {
+    background: #1976d2;
+    color: #fff;
+}
+
+.route-legs-table input {
+    width: 90%;
+    padding: 0.2rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.route-legs-section button {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.route-legs-section button:hover {
+    background: #1251a3;
+}
