@@ -1,4 +1,4 @@
-import { buildSerials, editSerial, mergeWithNext, recompute, setCheckpoint, splitSerial, summariseRoads, addBlankSerial } from './serials';
+import { buildSerials, derivedStartRelease, resolveInstructions, editSerial, mergeWithNext, recompute, setCheckpoint, splitSerial, summariseRoads, addBlankSerial } from './serials';
 import { defaultSettings } from '../model/routeCard';
 
 const step = (road, km, start, end, extra = {}) => ({
@@ -96,4 +96,25 @@ test('checkpoint names are not overrides and survive merge and split', () => {
     expect(merged[0].fromCp).toBe('Start');
     expect(merged[1].toCp).toBe('Finish');
     expect(recompute(merged, settings, {})[1].toCp).toBe('Finish');
+});
+
+describe('Start Point / Release Point from the route table', () => {
+    const serials = recompute(buildSerials(route, waypoints, defaultSettings()), defaultSettings(), {});
+    const { toOsGridRef } = require('../geo/geo');
+
+    test('SP is the first From grid ref and Rel Pt the last To grid ref', () => {
+        expect(derivedStartRelease(serials)).toEqual({ sp: toOsGridRef(A.lat, A.lon), relPt: toOsGridRef(C.lat, C.lon) });
+    });
+
+    test('typed-over cells use the grid ref in the text, and none found gives blank', () => {
+        let s = editSerial(serials, 0, 'from', 'Gate - SP 863 422');
+        s = editSerial(s, s.length - 1, 'to', 'Somewhere');
+        expect(derivedStartRelease(s)).toEqual({ sp: 'SP 863 422', relPt: '' });
+        expect(derivedStartRelease([])).toEqual({ sp: '', relPt: '' });
+    });
+
+    test('typed instruction values win over the route table', () => {
+        const r = resolveInstructions({ sp: ' ', relPt: 'SU 364 454', movFrom: 'X' }, serials);
+        expect(r).toEqual({ sp: toOsGridRef(A.lat, A.lon), relPt: 'SU 364 454', movFrom: 'X' });
+    });
 });

@@ -83,6 +83,32 @@ function ConvertTo-InstructionsV2 {
     [pscustomobject]$out
 }
 
+function Get-GridRefFromText {
+    param([string]$Text)
+    if ($Text -cmatch '(?<![A-Za-z0-9])([A-HJ-Z]{2})\s*(\d{2,5})\s+(\d{2,5})(?![\d.])' -and $Matches[2].Length -eq $Matches[3].Length) {
+        return "$($Matches[1]) $($Matches[2]) $($Matches[3])"
+    }
+    if ($Text -cmatch '(?<![A-Za-z0-9])([A-HJ-Z]{2})\s*(\d{4}|\d{6}|\d{8}|\d{10})(?![\d.])') {
+        $h = $Matches[2].Length / 2
+        return "$($Matches[1]) $($Matches[2].Substring(0, $h)) $($Matches[2].Substring($h))"
+    }
+    ''
+}
+
+function Add-DerivedStartRelease {
+    # Blank 4. Location of Start Point / 5. Location of Release Point follow the route table:
+    # grid ref in the first From (b) and the last To (c), as in the web app.
+    param($Instructions, $Serials)
+    $out = [ordered]@{}
+    foreach ($p in $Instructions.PSObject.Properties) { $out[$p.Name] = $p.Value }
+    $list = @($Serials)
+    if ($list.Count) {
+        if (-not "$($out['sp'])".Trim()) { $out['sp'] = Get-GridRefFromText (Get-Prop $list[0] 'from') }
+        if (-not "$($out['relPt'])".Trim()) { $out['relPt'] = Get-GridRefFromText (Get-Prop $list[-1] 'to') }
+    }
+    [pscustomobject]$out
+}
+
 function Get-InstructionValue {
     # Missing keys take the field-book default; keys present (even blank) keep their value.
     param($Instructions, [string]$Key, $Spec)
@@ -130,6 +156,7 @@ function New-RouteCardXlsx {
         $L = $script:Layout
         $instr = Get-Prop $card 'instructions' ([pscustomobject]@{})
         if ($version -eq 1) { $instr = ConvertTo-InstructionsV2 $instr }
+        $instr = Add-DerivedStartRelease $instr (Get-Prop $card 'serials' @())
         $pkg = Open-ExcelPackage -Path $OutputPath -Create
         try {
             $ws = Add-Worksheet -ExcelPackage $pkg -WorksheetName $L.Sheet

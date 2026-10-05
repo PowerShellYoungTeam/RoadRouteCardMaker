@@ -7,8 +7,8 @@ export const INSTRUCTION_ITEMS = [
     { no: 1, label: 'Move From', key: 'movFrom' },
     { no: 2, label: 'Move To', key: 'movTo' },
     { no: 3, label: 'Time/Date at Start Point', key: 'timeDateSp', placeholder: 'e.g. 0800 12/10/26' },
-    { no: 4, label: 'Location of Start Point', key: 'sp' },
-    { no: 5, label: 'Location of Release Point', key: 'relPt' },
+    { no: 4, label: 'Location of Start Point', key: 'sp', auto: 'grid ref of first From (b)' },
+    { no: 5, label: 'Location of Release Point', key: 'relPt', auto: 'grid ref of last To (c)' },
     { no: 6, label: 'Average speed', key: 'averageSpeed', placeholder: 'e.g. 40 (used for Total Time)' },
     { no: 7, label: 'Packet Intervals', key: 'timeBetweenPackets' },
     {

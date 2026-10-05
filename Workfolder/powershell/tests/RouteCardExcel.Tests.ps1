@@ -94,3 +94,23 @@ Describe 'Schema version 1 cards' {
         $card.instructions.tfc | Should -Be 'Varying'
     }
 }
+
+Describe 'Start Point / Release Point' {
+    It 'fills blank SP and Rel Pt from the first From and last To grid refs' {
+        $orig = Get-Content $script:Sample -Raw | ConvertFrom-Json
+        $orig.instructions.sp = ''
+        $orig.instructions.relPt = ''
+        $orig.serials[0].from = 'Gate - SP 863 422'
+        $json = Join-Path $TestDrive 'auto.json'
+        $orig | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $json -Encoding UTF8
+        $xlsx = New-RouteCardXlsx -Path $json -OutputPath (Join-Path $TestDrive 'auto.xlsx')
+        $pkg = Open-ExcelPackage -Path $xlsx.FullName
+        try {
+            $ws = $pkg.Workbook.Worksheets['Route Card']
+            $ws.Cells['C7'].Text | Should -Be 'SP 863 422'
+            $ws.Cells['C8'].Text | Should -Be (([regex]'[A-Z]{2} \d+ \d+').Match($orig.serials[-1].to).Value)
+            $ws.Cells['C8'].Text | Should -Not -BeNullOrEmpty
+        }
+        finally { Close-ExcelPackage $pkg -NoSave }
+    }
+}

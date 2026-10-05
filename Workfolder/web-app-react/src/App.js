@@ -11,7 +11,7 @@ import GpxExportPanel from './components/GpxExportPanel';
 import { newRouteCard } from './model/routeCard';
 import { getRoute } from './routing/routers';
 import { reverseGeocode } from './routing/geocode';
-import { addBlankSerial, buildSerials, editSerial, mergeWithNext, recompute, removeSerial, setCheckpoint, splitSerial } from './card/serials';
+import { addBlankSerial, buildSerials, derivedStartRelease, editSerial, mergeWithNext, recompute, removeSerial, resolveInstructions, setCheckpoint, splitSerial } from './card/serials';
 import { criticalPointsText, fetchRestrictions, OVERPASS_URLS } from './restrictions/overpass';
 import { downloadCard, readCardFile } from './io/cardJson';
 
@@ -225,7 +225,7 @@ export default function App() {
             </main>
 
             <div className="no-print">
-                <InstructionsForm instructions={card.instructions} onChange={instructions => update({ instructions })} />
+                <InstructionsForm instructions={card.instructions} derived={derivedStartRelease(serials)} onChange={instructions => update({ instructions })} />
                 <RouteDetailsEditor
                     serials={serials}
                     onEdit={(i, k, v) => setSerials(s => editSerial(s, i, k, v))}
@@ -238,7 +238,7 @@ export default function App() {
                 />
                 <h3 className="preview-title">Print preview</h3>
             </div>
-            <RouteCardPrint card={card} serials={serials} />
+            <RouteCardPrint card={{ ...card, instructions: resolveInstructions(card.instructions, serials) }} serials={serials} />
         </div>
     );
 }

@@ -1,4 +1,4 @@
-import { bearing, compassPoint, formatDistance, formatDuration, formatLocation, METRES_PER_MILE } from '../geo/geo';
+import { bearing, compassPoint, formatDistance, formatDuration, formatLocation, METRES_PER_MILE, parseOsGridRef, toOsGridRef } from '../geo/geo';
 
 /*
  * A serial (row in ROUTE DETAILS) keeps raw data plus display strings:
@@ -138,6 +138,29 @@ export function recompute(serials, settings, instructions) {
             totalTime: totalS > 0 ? formatDuration(totalS) : '',
         };
     });
+}
+
+// Grid reference of one end of a serial: the map point unless the cell was typed over, else a grid ref in the text.
+export function endpointGridRef(serial, which) {
+    if (!serial) return '';
+    const point = serial[`${which}Point`];
+    if (!serial.overrides?.[which] && point && Number.isFinite(point.lat) && Number.isFinite(point.lon)) {
+        return toOsGridRef(point.lat, point.lon) || '';
+    }
+    const grid = parseOsGridRef(serial[which]);
+    return grid && grid.ok ? grid.ref : '';
+}
+
+// 4. Location of Start Point = first From grid ref; 5. Location of Release Point = last To grid ref.
+export function derivedStartRelease(serials = []) {
+    return { sp: endpointGridRef(serials[0], 'from'), relPt: endpointGridRef(serials[serials.length - 1], 'to') };
+}
+
+// Blank SP / Rel Pt follow the route table; anything typed in the instructions wins.
+export function resolveInstructions(instructions, serials) {
+    const d = derivedStartRelease(serials);
+    const pick = k => (String(instructions[k] || '').trim() ? instructions[k] : d[k]);
+    return { ...instructions, sp: pick('sp'), relPt: pick('relPt') };
 }
 
 export function editSerial(serials, index, key, value) {

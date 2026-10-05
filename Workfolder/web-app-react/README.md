@@ -11,7 +11,13 @@ The INSTRUCTIONS items follow the short-form field book: 1. Move From, 2. Move T
 Rear Vehicle, Breakdown), 15. Contact Telephone (Sqn Ops, TP Comd), 16. Critical Points.
 New cards are pre-filled with these defaults: vehicle distances of 100 m (Day, M/Way) and 50 m otherwise,
 Lights Dipped, Traffic Varying, and Blue/Green/Yellow flags. Cards saved in the old 1–17 layout (`schemaVersion` 1) are
-converted when imported. The old date and time past SP are combined into item 3, each day/night distance fills both road types,
+converted when imported.
+
+**4. Location of Start Point** and **5. Location of Release Point** follow the route table while
+they are left blank. SP is the grid reference of the first From (b), e.g. `SP 863 422`. Rel Pt is
+the grid reference of the last To (c), the last controlled point before the destination. The form
+shows the value it will use; type your own value to override it, and clear the field to go back to
+the route table value. The Excel module follows the same rule. The old date and time past SP are combined into item 3, each day/night distance fills both road types,
 the old convoy flags text goes to Front Vehicle, and the old contact tel goes to Sqn Ops.
 
 ## Run

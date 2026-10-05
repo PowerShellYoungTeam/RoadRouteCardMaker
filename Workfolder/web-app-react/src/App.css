@@ -72,6 +72,8 @@ body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select:
 
 .instructions-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 12px; }
 .instructions-form .wide { grid-column: 1 / -1; }
+.instructions-form .instr-hint { display: block; font-size: 0.7rem; color: #6b7280; font-weight: normal; }
+.instructions-form input.auto-value::placeholder { color: #1f2937; font-style: italic; }
 .instructions-form .instr-group { grid-column: 1 / -1; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 8px 4px; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 0 12px; }
 .instructions-form .instr-group legend { font-size: 0.85rem; padding: 0 4px; }
 .instructions-form .instr-subgroup { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 8px; }
