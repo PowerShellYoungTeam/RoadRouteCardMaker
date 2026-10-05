@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PowerShellYoungTeam/RoadRouteCardMaker/schema/route-card.schema.json",
+  "title": "Road Movement Route Card",
+  "type": "object",
+  "required": ["schemaVersion", "instructions", "serials"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "title": { "type": "string" },
+    "instructions": {
+      "type": "object",
+      "description": "INSTRUCTIONS block items 1-17",
+      "properties": {
+        "movFrom": { "type": "string", "description": "1. Mov from" },
+        "movTo": { "type": "string", "description": "2. Mov to" },
+        "date": { "type": "string", "description": "3. Date" },
+        "timePastSp": { "type": "string", "description": "4. Time past SP (HHMM)" },
+        "sp": { "type": "string", "description": "5. SP (start point)" },
+        "relPt": { "type": "string", "description": "6. Rel Pt (release point)" },
+        "averageSpeed": { "type": "string", "description": "7. Average speed (number in card units per hour, e.g. 40)" },
+        "timeBetweenPackets": { "type": "string", "description": "8. Time between packets" },
+        "distBetweenVehsDay": { "type": "string", "description": "9a. Dist between vehs by day" },
+        "distBetweenVehsNight": { "type": "string", "description": "9b. Dist between vehs by night" },
+        "halts": { "type": "string", "description": "10. Halts" },
+        "lts": { "type": "string", "description": "11. Lts (lights)" },
+        "tfc": { "type": "string", "description": "12. Tfc (traffic)" },
+        "med": { "type": "string", "description": "13. Med" },
+        "rec": { "type": "string", "description": "14. Rec (recovery)" },
+        "convoyFlags": { "type": "string", "description": "15. Convoy flags" },
+        "contactTel": { "type": "string", "description": "16. Contact tel" },
+        "criticalPts": { "type": "string", "description": "17. Critical pts (multi-line)" }
+      },
+      "additionalProperties": { "type": "string" }
+    },
+    "vehicle": {
+      "type": "object",
+      "properties": {
+        "heightM": { "type": ["number", "string"] },
+        "widthM": { "type": ["number", "string"] },
+        "lengthM": { "type": ["number", "string"] },
+        "weightT": { "type": ["number", "string"] },
+        "axleLoadT": { "type": ["number", "string"] },
+        "hazmat": { "type": "boolean" }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "engine": { "enum": ["valhalla", "ors", "osrm"] },
+        "engineUrls": { "type": "object", "additionalProperties": { "type": "string" } },
+        "serialMode": { "enum": ["waypoint", "auto"] },
+        "locationFormat": { "enum": ["latlon", "grid", "both"] },
+        "units": { "enum": ["km", "mi"] },
+        "timeSource": { "enum": ["speed", "router"] },
+        "restrictionBufferMetres": { "type": "number" },
+        "overpassUrl": { "type": "string" }
+      }
+    },
+    "waypoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["lat", "lon"],
+        "properties": { "lat": { "type": "number" }, "lon": { "type": "number" }, "name": { "type": "string" } }
+      }
+    },
+    "serials": {
+      "type": "array",
+      "description": "ROUTE DETAILS table rows (a)-(h). Display strings are what is printed; raw numbers allow recalculation.",
+      "items": {
+        "type": "object",
+        "required": ["ser"],
+        "properties": {
+          "ser": { "type": ["integer", "string"], "description": "(a)" },
+          "from": { "type": "string", "description": "(b)" },
+          "to": { "type": "string", "description": "(c)" },
+          "route": { "type": "string", "description": "(d)" },
+          "dir": { "type": "string", "description": "(e)" },
+          "distance": { "type": "string", "description": "(f)" },
+          "totalDistance": { "type": "string", "description": "(g)" },
+          "totalTime": { "type": "string", "description": "(h)" },
+          "distanceM": { "type": "number" },
+          "durationS": { "type": "number" },
+          "fromPoint": { "$ref": "#/$defs/point" },
+          "toPoint": { "$ref": "#/$defs/point" }
+        }
+      }
+    },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "lat": { "type": "number" },
+          "lon": { "type": "number" },
+          "kind": { "type": "string" },
+          "value": { "type": "string" },
+          "name": { "type": "string" },
+          "conflict": { "type": "boolean" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "attribution": { "type": "string" },
+    "caveat": { "type": "string" }
+  },
+  "$defs": {
+    "point": {
+      "type": "object",
+      "properties": { "lat": { "type": "number" }, "lon": { "type": "number" }, "name": { "type": "string" } }
+    }
+  }
+}

@@ -1,16 +1,12 @@
 # RoadRouteCardMaker
 
-This project demonstrates multiple ways to create a truck route card:
+Tools for producing military-style road movement route cards.
 
-1. **Web App (React)**: A simple web application for creating and printing route cards.
-2. **Desktop App (Electron)**: A desktop application for offline route card creation.
-3. **Command-Line Tool (Python)**: A script to generate route cards from the terminal.
-4. **Spreadsheet Template**: An Excel template for manual entry and printing.
+| Folder | What it is |
+|---|---|
+| `web-app-react/` | **Main app.** A React + Leaflet browser app. It plans routes over OpenStreetMap (Valhalla, OpenRouteService HGV or OSRM), builds serials, checks HGV height and weight restrictions via Overpass, and prints or exports the card. |
+| `powershell/` | `RouteCardExcel` module. Converts the exported card JSON to a formatted `.xlsx` (and back) using ImportExcel. |
+| `schema/` | JSON schema for the route card, plus a sample. This is the contract between the web app and PowerShell. |
+| `desktop-app-electron/`, `cli-tool-python/`, `spreadsheet-template/` | Earlier prototypes. |
 
-Each option is in its own folder with a README explaining how to use it.
-
----
-
-## Getting Started
-
-See the README in each subfolder for setup and usage instructions.
+See the README in each folder for setup and usage.

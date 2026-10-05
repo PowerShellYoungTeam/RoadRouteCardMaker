@@ -1,134 +1,105 @@
+body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    background: #f3f4f6;
+    color: #111;
+}
+
 .App {
-    text-align: center;
-    font-family: Arial, sans-serif;
-    padding: 2rem;
-    background: #f7f7f7;
-    min-height: 100vh;
+    padding: 12px 16px 40px;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+header h1 { margin: 4px 0 8px; font-size: 1.5rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+button { cursor: pointer; padding: 5px 10px; border: 1px solid #9ca3af; background: #fff; border-radius: 4px; }
+button:disabled { opacity: 0.5; cursor: default; }
+button.link { border: none; background: none; color: #1d4ed8; text-align: left; padding: 2px 0; }
+.toolbar button:first-child { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+
+.status, .error, .info, .warning { padding: 6px 10px; border-radius: 4px; margin: 4px 0; font-size: 0.9rem; }
+.status { background: #e0e7ff; }
+.error { background: #fee2e2; color: #991b1b; }
+.info { background: #dcfce7; }
+.warning { background: #fef3c7; }
+.hint { color: #6b7280; font-size: 0.85rem; margin: 4px 0; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 8px var(--side-width, 340px); gap: 6px; }
+@media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .splitter-x { display: none; }
 }
+.map-wrap { height: 560px; }
+.map { height: 100%; width: 100%; border-radius: 6px; border: 1px solid #d1d5db; box-sizing: border-box; }
+.side-col { min-width: 0; }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
+.splitter { background: #e5e7eb; border-radius: 3px; touch-action: none; position: relative; }
+.splitter:hover, .splitter:focus-visible { background: #93c5fd; outline: none; }
+.splitter-x { cursor: col-resize; }
+.splitter-y { cursor: row-resize; height: 8px; margin: 4px 0 10px; }
+.splitter::after { content: ''; position: absolute; inset: 0; margin: auto; background: #9ca3af; border-radius: 1px; }
+.splitter-x::after { width: 2px; height: 32px; }
+.splitter-y::after { height: 2px; width: 32px; }
+body.resizing-x, body.resizing-x * { cursor: col-resize !important; user-select: none; }
+body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select: none; }
 
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
+.panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
+.panel h3 { margin: 0 0 8px; font-size: 1rem; }
+.panel label { display: flex; flex-direction: column; font-size: 0.85rem; margin-bottom: 6px; gap: 2px; }
+.panel label.check { flex-direction: row; align-items: center; gap: 6px; }
+.panel input, .panel select, .panel textarea { padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 4px; font: inherit; }
+.row { display: flex; gap: 4px; }
+.row input { flex: 1; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
 
-.App-link {
-    color: #61dafb;
-}
+.results { list-style: none; padding: 0; margin: 4px 0; font-size: 0.85rem; max-height: 160px; overflow: auto; }
+.waypoints { padding-left: 20px; }
+.waypoints li { margin-bottom: 6px; }
+.waypoints li input { width: 100%; box-sizing: border-box; }
+.waypoints small { display: block; color: #6b7280; }
+.waypoints .btns button { padding: 1px 6px; margin-right: 2px; }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
+.wp-pin { width: 24px; height: 24px; border-radius: 50%; background: #1d4ed8; color: #fff; font-weight: bold;
+    display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 0 3px #000; font-size: 12px; }
+.wp-pin.wp-start { background: #16a34a; }
+.wp-pin.wp-end { background: #dc2626; }
 
-    to {
-        transform: rotate(360deg);
-    }
-}
+.restrictions { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; height: 220px; min-height: 60px; overflow: auto; resize: vertical; }
+.restrictions li { padding: 2px 0 2px 8px; border-left: 4px solid #9ca3af; margin-bottom: 2px; }
+.restrictions li.conflict { border-color: #d00; font-weight: bold; }
+.restrictions li.onroute { border-color: #f80; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 2px 0 8px; }
+.dot.red { background: #d00; } .dot.orange { background: #f80; } .dot.grey { background: #888; }
 
-.route-form {
-    background: #fff;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-}
+.instructions-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 12px; }
+.instructions-form .wide { grid-column: 1 / -1; }
 
-.route-form label {
-    display: block;
-    margin-bottom: 1rem;
-}
+.route-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.route-table th, .route-table td { border: 1px solid #000; padding: 3px 5px; vertical-align: top; text-align: left; }
+.route-table th { background: #e5e7eb; }
+.route-table .letters th { font-weight: normal; text-align: center; }
+.route-table.editor textarea { width: 100%; box-sizing: border-box; resize: vertical; font-size: 0.85rem; }
+.route-table.editor textarea.edited { background: #fffbeb; }
+.row-actions { white-space: nowrap; }
+.row-actions button { padding: 1px 5px; font-size: 0.75rem; margin: 1px; }
 
-.route-form input {
-    margin-left: 0.5rem;
-    padding: 0.3rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
+.preview-title { margin: 16px 0 6px; }
+.route-card { background: #fff; border: 1px solid #000; padding: 16px 20px; }
+.route-card h2 { text-align: center; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+.route-card h4 { margin: 10px 0 4px; text-decoration: underline; }
+.instr-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+.instr { display: flex; gap: 6px; font-size: 0.9rem; padding: 2px 0; }
+.instr.sub { padding-left: 18px; }
+.instr-label { white-space: nowrap; }
+.instr-value { flex: 1; border-bottom: 1px dotted #000; min-height: 1.1em; white-space: pre-wrap; }
+.caveat { font-size: 0.75rem; font-style: italic; margin: 8px 0 0; }
+.attribution { font-size: 0.7rem; color: #555; margin: 2px 0 0; }
 
-.route-card-preview {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.route-card {
-    background: #fff;
-    border: 2px solid #1976d2;
-    border-radius: 8px;
-    padding: 1rem;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
-}
-
-.route-card p {
-    margin: 0.5rem 0;
-    font-size: 1.1rem;
-}
-
-.route-legs-section {
-    background: #fff;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.route-legs-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1rem;
-}
-
-.route-legs-table th,
-.route-legs-table td {
-    border: 1px solid #ccc;
-    padding: 0.5rem;
-    text-align: center;
-}
-
-.route-legs-table th {
-    background: #1976d2;
-    color: #fff;
-}
-
-.route-legs-table input {
-    width: 90%;
-    padding: 0.2rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
-
-.route-legs-section button {
-    background: #1976d2;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 0.4rem 1rem;
-    cursor: pointer;
-    margin-top: 0.5rem;
-}
-
-.route-legs-section button:hover {
-    background: #1251a3;
+@media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body { background: #fff; }
+    .App { padding: 0; max-width: none; }
+    .no-print { display: none !important; }
+    .route-card { border: none; padding: 0; }
+    .route-table { font-size: 9pt; }
+    .route-table tr { page-break-inside: avoid; }
 }

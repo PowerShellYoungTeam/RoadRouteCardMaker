@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "title": "Route Card",
+  "instructions": {
+    "movFrom": "Tidworth",
+    "movTo": "Andover",
+    "date": "2026-10-12",
+    "timePastSp": "0800",
+    "sp": "Tidworth Camp main gate SU 234 490",
+    "relPt": "Andover Western Avenue SU 364 454",
+    "averageSpeed": "40",
+    "timeBetweenPackets": "10 mins",
+    "distBetweenVehsDay": "100 m",
+    "distBetweenVehsNight": "50 m",
+    "halts": "None",
+    "lts": "Dipped headlights",
+    "tfc": "Light",
+    "med": "Andover War Memorial Hospital",
+    "rec": "REME recovery at rear of packet",
+    "convoyFlags": "Blue front / Green rear",
+    "contactTel": "01234 567890",
+    "criticalPts": "Narrow section A342 Weyhill\n--- OSM restrictions (verify locally) ---\n!! Height limit: 4.11 m (13'6\") - A342 @ SU 339 458"
+  },
+  "vehicle": { "heightM": "4.2", "widthM": "2.55", "lengthM": "16.5", "weightT": "40", "axleLoadT": "", "hazmat": false },
+  "settings": {
+    "engine": "valhalla",
+    "engineUrls": {
+      "valhalla": "https://valhalla1.openstreetmap.de",
+      "ors": "https://api.openrouteservice.org",
+      "osrm": "https://router.project-osrm.org"
+    },
+    "serialMode": "auto",
+    "locationFormat": "grid",
+    "units": "km",
+    "timeSource": "speed",
+    "restrictionBufferMetres": 30,
+    "overpassUrl": ""
+  },
+  "waypoints": [
+    { "lat": 51.2405, "lon": -1.665, "name": "Tidworth" },
+    { "lat": 51.2069, "lon": -1.4797, "name": "Andover" }
+  ],
+  "serials": [
+    {
+      "ser": 1,
+      "from": "Tidworth - SU 234 490",
+      "to": "Jn A3026/A342 - SU 314 467",
+      "route": "A3026",
+      "dir": "ESE towards Andover",
+      "distance": "10.2 km",
+      "totalDistance": "10.2 km",
+      "totalTime": "00:15",
+      "distanceM": 10200,
+      "durationS": 720
+    },
+    {
+      "ser": 2,
+      "from": "Jn A3026/A342 - SU 314 467",
+      "to": "Jn A342/Weyhill Road - SU 339 458",
+      "route": "A342",
+      "dir": "ESE towards Andover",
+      "distance": "2.7 km",
+      "totalDistance": "12.9 km",
+      "totalTime": "00:19",
+      "distanceM": 2700,
+      "durationS": 190
+    },
+    {
+      "ser": 3,
+      "from": "Jn A342/Weyhill Road - SU 339 458",
+      "to": "Andover - SU 364 454",
+      "route": "Weyhill Road → Western Avenue",
+      "dir": "E towards Andover",
+      "distance": "3.3 km",
+      "totalDistance": "16.3 km",
+      "totalTime": "00:24",
+      "distanceM": 3300,
+      "durationS": 300
+    }
+  ],
+  "restrictions": [
+    {
+      "id": "way/0/maxheight",
+      "osmUrl": "https://www.openstreetmap.org/way/0",
+      "lat": 51.21124,
+      "lon": -1.51586,
+      "kind": "maxheight",
+      "tag": "maxheight",
+      "value": "13'6\"",
+      "valueMetric": 4.1148,
+      "name": "A342",
+      "onRoute": true,
+      "conflict": true,
+      "description": "Height limit: 4.11 m (13'6\") - A342"
+    }
+  ],
+  "attribution": "© OpenStreetMap contributors",
+  "caveat": "Restriction data from OpenStreetMap is incomplete and advisory only. Verify heights, weights and access locally before moving."
+}
