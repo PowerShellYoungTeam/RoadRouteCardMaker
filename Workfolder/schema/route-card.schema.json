@@ -82,7 +82,9 @@
           "distanceM": { "type": "number" },
           "durationS": { "type": "number" },
           "fromPoint": { "$ref": "#/$defs/point" },
-          "toPoint": { "$ref": "#/$defs/point" }
+          "toPoint": { "$ref": "#/$defs/point" },
+          "fromCp": { "type": "string", "description": "Optional checkpoint name for the From point (GPX export only, not printed)" },
+          "toCp": { "type": "string", "description": "Optional checkpoint name for the To point (GPX export only, not printed)" }
         }
       }
     },

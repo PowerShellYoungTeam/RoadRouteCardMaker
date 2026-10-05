@@ -144,11 +144,20 @@ export function editSerial(serials, index, key, value) {
     return serials.map((s, i) => (i === index ? { ...s, [key]: value, overrides: { ...s.overrides, [key]: true } } : s));
 }
 
+// Optional checkpoint names (fromCp / toCp) used only for GPX export; they are not route-card overrides.
+export function setCheckpoint(serials, index, key, value) {
+    return serials.map((s, i) => (i === index ? { ...s, [key]: value } : s));
+}
+
+const keepCp = (key, value) => (value ? { [key]: value } : {});
+
 export function mergeWithNext(serials, index) {
     if (index < 0 || index >= serials.length - 1) return serials;
     const a = serials[index];
     const b = serials[index + 1];
     const merged = {
+        ...keepCp('fromCp', a.fromCp),
+        ...keepCp('toCp', b.toCp),
         fromPoint: a.fromPoint,
         toPoint: b.toPoint,
         steps: [...(a.steps || []), ...(b.steps || [])],
@@ -180,8 +189,8 @@ export function splitSerial(serials, index) {
     const roadA = stepsA[stepsA.length - 1].road;
     const roadB = stepsB[0].road;
     const mid = { ...stepsB[0].start, name: roadA && roadB && roadA !== roadB ? `Jn ${roadA}/${roadB}` : '' };
-    const a = { ...makeSerial(s.fromPoint, mid, stepsA), legEndName: s.legEndName };
-    const b = { ...makeSerial(mid, s.toPoint, stepsB), legEndName: s.legEndName };
+    const a = { ...makeSerial(s.fromPoint, mid, stepsA), legEndName: s.legEndName, ...keepCp('fromCp', s.fromCp) };
+    const b = { ...makeSerial(mid, s.toPoint, stepsB), legEndName: s.legEndName, ...keepCp('toCp', s.toCp) };
     // Keep router totals consistent when the leg total differs from the step sum.
     const stepSum = a.distanceM + b.distanceM;
     if (stepSum > 0) {

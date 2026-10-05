@@ -79,6 +79,9 @@ body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select:
 .route-table .letters th { font-weight: normal; text-align: center; }
 .route-table.editor textarea { width: 100%; box-sizing: border-box; resize: vertical; font-size: 0.85rem; }
 .route-table.editor textarea.edited { background: #fffbeb; }
+.route-table.editor input.checkpoint { width: 100%; box-sizing: border-box; margin-top: 2px; font-size: 0.75rem; border: 1px dashed #9ca3af; border-radius: 3px; padding: 1px 4px; }
+.gpx-panel { max-width: 760px; }
+.gpx-panel ul { margin: 4px 0; padding-left: 18px; }
 .row-actions { white-space: nowrap; }
 .row-actions button { padding: 1px 5px; font-size: 0.75rem; margin: 1px; }
 

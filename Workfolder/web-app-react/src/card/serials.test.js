@@ -1,4 +1,4 @@
-import { buildSerials, editSerial, mergeWithNext, recompute, splitSerial, summariseRoads, addBlankSerial } from './serials';
+import { buildSerials, editSerial, mergeWithNext, recompute, setCheckpoint, splitSerial, summariseRoads, addBlankSerial } from './serials';
 import { defaultSettings } from '../model/routeCard';
 
 const step = (road, km, start, end, extra = {}) => ({
@@ -79,4 +79,21 @@ test('manual edits are preserved and manual rows add to totals', () => {
     expect(s[0].from).toMatch(/^Tidworth Camp - 51\.00000/);
     expect(s[2].ser).toBe(3);
     expect(s[2].totalDistance).toBe('35.0 km');
+});
+
+test('checkpoint names are not overrides and survive merge and split', () => {
+    const settings = defaultSettings();
+    let s = buildSerials(route, waypoints, settings);
+    s = setCheckpoint(s, 0, 'fromCp', 'Start');
+    s = setCheckpoint(s, 1, 'toCp', 'Finish');
+    expect(s[0].overrides).toEqual({});
+    const split = splitSerial(s, 0);
+    expect(split).toHaveLength(3);
+    expect(split[0].fromCp).toBe('Start');
+    expect(split[1].fromCp).toBeUndefined();
+    expect(split[2].toCp).toBe('Finish');
+    const merged = mergeWithNext(split, 1);
+    expect(merged[0].fromCp).toBe('Start');
+    expect(merged[1].toCp).toBe('Finish');
+    expect(recompute(merged, settings, {})[1].toCp).toBe('Finish');
 });

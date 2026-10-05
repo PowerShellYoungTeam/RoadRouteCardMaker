@@ -7,10 +7,11 @@ import InstructionsForm from './components/InstructionsForm';
 import RouteDetailsEditor from './components/RouteDetailsEditor';
 import RouteCardPrint from './components/RouteCardPrint';
 import Splitter from './components/Splitter';
+import GpxExportPanel from './components/GpxExportPanel';
 import { newRouteCard } from './model/routeCard';
 import { getRoute } from './routing/routers';
 import { reverseGeocode } from './routing/geocode';
-import { addBlankSerial, buildSerials, editSerial, mergeWithNext, recompute, removeSerial, splitSerial } from './card/serials';
+import { addBlankSerial, buildSerials, editSerial, mergeWithNext, recompute, removeSerial, setCheckpoint, splitSerial } from './card/serials';
 import { criticalPointsText, fetchRestrictions, OVERPASS_URLS } from './restrictions/overpass';
 import { downloadCard, readCardFile } from './io/cardJson';
 
@@ -43,6 +44,7 @@ export default function App() {
     const [busy, setBusy] = useState('');
     const [error, setError] = useState('');
     const [info, setInfo] = useState('');
+    const [showGpx, setShowGpx] = useState(false);
     const fileInput = useRef(null);
     const [layout, setLayoutState] = useState(loadLayout);
     const setLayout = patch => setLayoutState(l => {
@@ -149,6 +151,7 @@ export default function App() {
                     <button type="button" onClick={checkRestrictions} disabled={!!busy || !route || routeStale}>Check HGV restrictions</button>
                     <button type="button" onClick={() => window.print()}>Print / PDF</button>
                     <button type="button" onClick={() => downloadCard({ ...card, serials })}>Export JSON</button>
+                    <button type="button" onClick={() => setShowGpx(v => !v)} aria-expanded={showGpx}>Export GPX for ATAK</button>
                     <button type="button" onClick={() => fileInput.current.click()}>Import JSON</button>
                     <input ref={fileInput} type="file" accept=".json,application/json" hidden onChange={importFile} />
                     <button type="button" onClick={() => { setCard(newRouteCard()); setRoute(null); }}>New card</button>
@@ -157,6 +160,7 @@ export default function App() {
                 {error && <div className="error">{error}</div>}
                 {info && <div className="info">{info}</div>}
                 {routeStale && <div className="warning">Waypoints changed since the route was planned - click "Plan route" again.</div>}
+                {showGpx && <GpxExportPanel card={card} serials={serials} onClose={() => setShowGpx(false)} />}
             </header>
 
             <main className="layout no-print" style={{ '--side-width': `${layout.sideWidth}px` }}>
@@ -225,6 +229,7 @@ export default function App() {
                 <RouteDetailsEditor
                     serials={serials}
                     onEdit={(i, k, v) => setSerials(s => editSerial(s, i, k, v))}
+                    onCheckpoint={(i, k, v) => setSerials(s => setCheckpoint(s, i, k, v))}
                     onMerge={i => setSerials(s => mergeWithNext(s, i))}
                     onSplit={i => setSerials(s => splitSerial(s, i))}
                     onRemove={i => setSerials(s => removeSerial(s, i))}

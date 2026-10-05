@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "title": "EX DEMO ROUTE (fictional - training only)",
+  "instructions": {
+    "movFrom": "Bath",
+    "movTo": "Bristol",
+    "date": "2030-01-01",
+    "timePastSp": "1000",
+    "sp": "Royal Crescent, Bath ST 744 654",
+    "relPt": "Temple Meads, Bristol ST 597 723",
+    "averageSpeed": "30",
+    "timeBetweenPackets": "10 mins",
+    "distBetweenVehsDay": "100 m",
+    "distBetweenVehsNight": "50 m",
+    "halts": "None",
+    "lts": "Dipped headlights",
+    "tfc": "Urban",
+    "med": "Fictional - not for use",
+    "rec": "Fictional - not for use",
+    "convoyFlags": "",
+    "contactTel": "01632 960000",
+    "criticalPts": "Fictional demonstration route. Straight-line GPX only - not checked for HGV suitability."
+  },
+  "vehicle": { "heightM": "", "widthM": "", "lengthM": "", "weightT": "", "axleLoadT": "", "hazmat": false },
+  "settings": {
+    "serialMode": "waypoint",
+    "locationFormat": "grid",
+    "units": "km",
+    "timeSource": "speed"
+  },
+  "waypoints": [],
+  "serials": [
+    {
+      "ser": 1,
+      "from": "Royal Crescent, Bath - ST 744 654",
+      "to": "A4 Newbridge Rd, Bath - ST 721 656",
+      "route": "A4 Upper Bristol Rd",
+      "dir": "W",
+      "distance": "2.5",
+      "fromCp": "SP Royal Crescent",
+      "overrides": { "from": true, "to": true, "route": true, "dir": true }
+    },
+    {
+      "ser": 2,
+      "from": "A4 Newbridge Rd, Bath - ST 721 656",
+      "to": "A4 at Saltford - ST 687 669",
+      "route": "A4 Bath Rd",
+      "dir": "WNW towards Saltford",
+      "distance": "3.8",
+      "toCp": "CP1 Saltford",
+      "overrides": { "from": true, "to": true, "route": true, "dir": true }
+    },
+    {
+      "ser": 3,
+      "from": "A4 at Saltford - ST 687 669",
+      "to": "A4 Keynsham bypass - ST 653 684",
+      "route": "A4 Bath Rd / Keynsham bypass",
+      "dir": "WNW towards Keynsham",
+      "distance": "3.8",
+      "overrides": { "from": true, "to": true, "route": true, "dir": true }
+    },
+    {
+      "ser": 4,
+      "from": "A4 Keynsham bypass - ST 653 684",
+      "to": "A4 Brislington - ST 620 710",
+      "route": "A4 Bath Rd",
+      "dir": "NW towards Bristol",
+      "distance": "4.4",
+      "toCp": "CP2 Brislington",
+      "overrides": { "from": true, "to": true, "route": true, "dir": true }
+    },
+    {
+      "ser": 5,
+      "from": "A4 Brislington - ST 620 710",
+      "to": "Temple Meads, Bristol - ST 597 723",
+      "route": "A4 Bath Rd",
+      "dir": "WNW towards Temple Meads",
+      "distance": "2.9",
+      "toCp": "RP Temple Meads",
+      "overrides": { "from": true, "to": true, "route": true, "dir": true }
+    }
+  ],
+  "restrictions": [],
+  "attribution": "© OpenStreetMap contributors",
+  "caveat": "FICTIONAL demonstration data using public places. Not a reconnoitred or approved route."
+}
