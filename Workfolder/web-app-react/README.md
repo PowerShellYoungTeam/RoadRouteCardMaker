@@ -30,6 +30,12 @@ npm run build
 5. Fill in the instructions, then use **Print / PDF** or **Export JSON**. To get an `.xlsx`, run
    `../powershell` (`New-RouteCardXlsx`) on the exported JSON.
 
+## Layout
+
+Drag the bar under the map to change its height, and the bar between the map and the side panel to
+change the panel width. Double-click a bar to reset it. Sizes are remembered in localStorage. The
+restrictions list can be resized from its corner.
+
 ## Routing engines
 
 | Engine | Vehicle-aware | Notes |
@@ -44,8 +50,10 @@ You can change the server URL for each engine in Settings, for example to point 
 
 - OSM coverage of height, weight and width limits is incomplete. Treat the results as prompts for a
   proper route recce, not as clearance.
-- Public Overpass servers are often busy. The app tries several mirrors (60 s timeout each). You can
-  also set a custom Overpass URL in Settings.
+- Public Overpass servers often answer 504/429 even to small queries. The app splits long routes into
+  ~50 km sections and retries each across overpass-api.de, z.overpass-api.de, lz4.overpass-api.de and
+  other mirrors with backoff (up to 4 rounds). Progress shows in the status bar. For reliable use, set
+  your own Overpass URL in Settings.
 - Map data © OpenStreetMap contributors (ODbL). Geocoding is by Nominatim; keep usage light.
 
 ## Dev note

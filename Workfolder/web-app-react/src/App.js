@@ -6,6 +6,7 @@ import SettingsPanel from './components/SettingsPanel';
 import InstructionsForm from './components/InstructionsForm';
 import RouteDetailsEditor from './components/RouteDetailsEditor';
 import RouteCardPrint from './components/RouteCardPrint';
+import Splitter from './components/Splitter';
 import { newRouteCard } from './model/routeCard';
 import { getRoute } from './routing/routers';
 import { reverseGeocode } from './routing/geocode';
@@ -14,7 +15,17 @@ import { criticalPointsText, fetchRestrictions, OVERPASS_URLS } from './restrict
 import { downloadCard, readCardFile } from './io/cardJson';
 
 const ORS_KEY_STORAGE = 'routecard.orsApiKey';
+const LAYOUT_STORAGE = 'routecard.layout';
+const DEFAULT_LAYOUT = { sideWidth: 340, mapHeight: 560 };
 const OSM_BLOCK_START = '--- OSM restrictions (verify locally) ---';
+
+function loadLayout() {
+    try {
+        return { ...DEFAULT_LAYOUT, ...JSON.parse(localStorage.getItem(LAYOUT_STORAGE) || '{}') };
+    } catch {
+        return DEFAULT_LAYOUT;
+    }
+}
 
 // Replace the auto-generated block in Critical pts, keeping anything the user typed above it.
 function mergeCriticalPts(existing, generated) {
@@ -33,6 +44,12 @@ export default function App() {
     const [error, setError] = useState('');
     const [info, setInfo] = useState('');
     const fileInput = useRef(null);
+    const [layout, setLayoutState] = useState(loadLayout);
+    const setLayout = patch => setLayoutState(l => {
+        const next = { ...l, ...patch };
+        localStorage.setItem(LAYOUT_STORAGE, JSON.stringify(next));
+        return next;
+    });
 
     const update = patch => setCard(c => ({ ...c, ...patch }));
     const setApiKey = k => { setApiKeyState(k); localStorage.setItem(ORS_KEY_STORAGE, k); };
@@ -90,6 +107,8 @@ export default function App() {
             const restrictions = await fetchRestrictions(route.geometry, card.vehicle, {
                 bufferM: card.settings.restrictionBufferMetres,
                 urls: [card.settings.overpassUrl, ...OVERPASS_URLS],
+                onProgress: ({ section, sections, attempt, host }) => setBusy(
+                    `Querying OSM for restrictions - section ${section}/${sections} via ${host}${attempt > 1 ? ` (retry round ${attempt})` : ''}…`),
             });
             const conflicts = restrictions.filter(r => r.conflict).length;
             const onRoute = restrictions.filter(r => r.onRoute).length;
@@ -140,7 +159,7 @@ export default function App() {
                 {routeStale && <div className="warning">Waypoints changed since the route was planned - click "Plan route" again.</div>}
             </header>
 
-            <main className="layout no-print">
+            <main className="layout no-print" style={{ '--side-width': `${layout.sideWidth}px` }}>
                 <section className="map-col">
                     <MapPanel
                         waypoints={card.waypoints}
@@ -148,6 +167,16 @@ export default function App() {
                         restrictions={card.restrictions}
                         onAddWaypoint={addWaypoint}
                         onMoveWaypoint={moveWaypoint}
+                        height={layout.mapHeight}
+                    />
+                    <Splitter
+                        axis="y"
+                        value={layout.mapHeight}
+                        min={250}
+                        max={1600}
+                        onChange={mapHeight => setLayout({ mapHeight })}
+                        onReset={() => setLayout({ mapHeight: DEFAULT_LAYOUT.mapHeight })}
+                        title="Drag to resize the map height, double-click to reset"
                     />
                     {card.restrictions.length > 0 && (
                         <div className="panel">
@@ -163,6 +192,16 @@ export default function App() {
                         </div>
                     )}
                 </section>
+                <Splitter
+                    axis="x"
+                    invert
+                    value={layout.sideWidth}
+                    min={240}
+                    max={900}
+                    onChange={sideWidth => setLayout({ sideWidth })}
+                    onReset={() => setLayout({ sideWidth: DEFAULT_LAYOUT.sideWidth })}
+                    title="Drag to resize the side panel, double-click to reset"
+                />
                 <aside className="side-col">
                     <WaypointList
                         waypoints={card.waypoints}

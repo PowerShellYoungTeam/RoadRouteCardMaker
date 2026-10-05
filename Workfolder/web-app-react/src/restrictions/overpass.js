@@ -1,7 +1,11 @@
-import { distanceToPolylineMetres, toOsGridRef } from '../geo/geo';
+import { distanceToPolylineMetres, haversineMetres, toOsGridRef } from '../geo/geo';
 
+// overpass-api.de and its z./lz4. aliases are separate front-ends that fail (504/429) independently,
+// so they are tried in rotation before the less reliable third-party mirrors.
 export const OVERPASS_URLS = [
     'https://overpass-api.de/api/interpreter',
+    'https://z.overpass-api.de/api/interpreter',
+    'https://lz4.overpass-api.de/api/interpreter',
     'https://overpass.private.coffee/api/interpreter',
     'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
 ];
@@ -85,7 +89,7 @@ export function buildOverpassQuery(line, bufferM = 30) {
     while (simple.length > 1500 && tol < 200) simple = simplifyLine(line, (tol *= 2));
     const coords = simple.map(([lat, lon]) => `${lat.toFixed(6)},${lon.toFixed(6)}`).join(',');
     const a = `(around:${bufferM},${coords})`;
-    return `[out:json][timeout:90];
+    return `[out:json][timeout:60];
 (
   way${a}["highway"][~"^max(height|weight|axleload|width|length)(:physical|:hgv)?$"~"."];
   way${a}["highway"]["hgv"~"^(no|destination|delivery|discouraged)$"];
@@ -160,30 +164,88 @@ export function analyseElements(elements, routeLine, vehicle = {}, bufferM = 30)
     return out.sort((a, b) => (b.conflict - a.conflict) || (b.onRoute - a.onRoute));
 }
 
-export async function fetchRestrictions(routeLine, vehicle, { bufferM = 30, urls = OVERPASS_URLS, timeoutMs = 60000 } = {}) {
-    const query = buildOverpassQuery(routeLine, bufferM);
-    let lastError;
-    // Public Overpass servers are often busy (429/504), so try each mirror in turn.
-    for (const url of urls.filter(Boolean)) {
-        const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        const timer = ctrl && setTimeout(() => ctrl.abort(), timeoutMs);
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `data=${encodeURIComponent(query)}`,
-                signal: ctrl?.signal,
-            });
-            if (!res.ok) throw new Error(`${new URL(url).host} returned ${res.status}`);
-            const data = await res.json();
-            return analyseElements(data.elements || [], routeLine, vehicle, bufferM);
-        } catch (e) {
-            lastError = e.name === 'AbortError' ? new Error(`${new URL(url).host} timed out`) : e;
-        } finally {
-            if (timer) clearTimeout(timer);
+// Split a route into sections of roughly `sectionM` metres (sections share their end point).
+export function splitLine(line, sectionM = 25000) {
+    if (line.length < 2) return [line];
+    const sections = [];
+    let start = 0, run = 0;
+    for (let i = 1; i < line.length; i++) {
+        run += haversineMetres({ lat: line[i - 1][0], lon: line[i - 1][1] }, { lat: line[i][0], lon: line[i][1] });
+        if (run >= sectionM && i < line.length - 1) {
+            sections.push(line.slice(start, i + 1));
+            start = i;
+            run = 0;
         }
     }
-    throw new Error(`Overpass request failed (${lastError?.message}) - the public servers may be busy, try again shortly.`);
+    sections.push(line.slice(start));
+    return sections;
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function postOverpass(url, query, timeoutMs) {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl && setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `data=${encodeURIComponent(query)}`,
+            signal: ctrl?.signal,
+        });
+        if (!res.ok) throw Object.assign(new Error(`${new URL(url).host} returned ${res.status}`), { status: res.status });
+        const data = await res.json();
+        if (data.remark && /runtime error|timed out|out of memory/i.test(data.remark)) throw new Error(`${new URL(url).host}: ${data.remark}`);
+        return data.elements || [];
+    } catch (e) {
+        if (e.name === 'AbortError') throw Object.assign(new Error(`${new URL(url).host} timed out`), { timedOut: true });
+        throw e;
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
+
+// Public Overpass servers frequently answer 504/429 even to tiny queries, so each route section is
+// retried across the mirrors with backoff. Mirrors that time out are dropped for the rest of the run.
+export async function fetchRestrictions(routeLine, vehicle, {
+    bufferM = 30,
+    urls = OVERPASS_URLS,
+    timeoutMs = 75000,
+    sectionM = 50000,
+    maxRounds = 4,
+    backoffMs = [0, 3000, 8000, 15000],
+    onProgress = () => {},
+    wait = sleep,
+} = {}) {
+    let mirrors = [...new Set(urls.filter(Boolean))];
+    const sections = splitLine(routeLine, sectionM);
+    const byId = new Map();
+    let next = 0;
+    for (let s = 0; s < sections.length; s++) {
+        const query = buildOverpassQuery(sections[s], bufferM);
+        let done = false, lastError;
+        for (let round = 0; round < maxRounds && !done; round++) {
+            if (round > 0) await wait(backoffMs[Math.min(round, backoffMs.length - 1)]);
+            for (let m = 0; m < mirrors.length && !done; m++) {
+                const url = mirrors[(next + m) % mirrors.length];
+                onProgress({ section: s + 1, sections: sections.length, attempt: round + 1, host: new URL(url).host });
+                try {
+                    for (const el of await postOverpass(url, query, timeoutMs)) byId.set(`${el.type}/${el.id}`, el);
+                    done = true;
+                    next = (next + m) % mirrors.length; // stick with a mirror that works
+                } catch (e) {
+                    lastError = e;
+                    if (e.timedOut && mirrors.length > 1) { mirrors = mirrors.filter(u => u !== url); m--; }
+                    if (e.status === 429) await wait(2000);
+                }
+            }
+        }
+        if (!done) {
+            throw new Error(`Overpass request failed for section ${s + 1}/${sections.length} after ${maxRounds} rounds `
+                + `(${lastError?.message}) - the public servers are busy, try again in a few minutes or set your own Overpass URL in Settings.`);
+        }
+    }
+    return analyseElements([...byId.values()], routeLine, vehicle, bufferM);
 }
 
 // Text for INSTRUCTIONS item 17 (Critical pts). Only restrictions that sit on the route are listed.

@@ -1,4 +1,4 @@
-import { analyseElements, buildOverpassQuery, criticalPointsText, parseLength, parseWeight, simplifyLine } from './overpass';
+import { analyseElements, buildOverpassQuery, criticalPointsText, fetchRestrictions, parseLength, parseWeight, simplifyLine, splitLine } from './overpass';
 
 test('parse OSM length values', () => {
     expect(parseLength('4.5')).toBe(4.5);
@@ -71,4 +71,36 @@ test('ignores "no limit" values and implausible tagging', () => {
     const res = analyseElements(els, routeLine, {}, 30);
     expect(res).toHaveLength(1);
     expect(res[0].description).toMatch(/4\.10 m/);
+});
+
+test('splitLine cuts long routes into sections that share end points', () => {
+    const line = Array.from({ length: 101 }, (_, i) => [51.0, -1.0 + i * 0.01]); // ~70 km east-west
+    const parts = splitLine(line, 25000);
+    expect(parts.length).toBe(3);
+    expect(parts[0][parts[0].length - 1]).toEqual(parts[1][0]);
+    expect(parts.flat().length).toBe(line.length + parts.length - 1);
+    expect(splitLine(line.slice(0, 5), 25000)).toHaveLength(1);
+});
+
+describe('fetchRestrictions retries', () => {
+    const okBody = { elements: [{ type: 'way', id: 1, tags: { highway: 'primary', maxheight: '4.0' }, geometry: [{ lat: 51.0, lon: -0.995 }, { lat: 51.0, lon: -0.994 }] }] };
+    const respond = status => Promise.resolve({ ok: status === 200, status, json: () => Promise.resolve(okBody) });
+    afterEach(() => { delete global.fetch; });
+
+    test('rotates mirrors and retries until one answers', async () => {
+        const statuses = [504, 429, 504, 200];
+        const hosts = [];
+        global.fetch = jest.fn(url => { hosts.push(new URL(url).host); return respond(statuses.shift()); });
+        const res = await fetchRestrictions(routeLine, {}, { urls: ['https://a.test/i', 'https://b.test/i'], wait: () => Promise.resolve() });
+        expect(global.fetch).toHaveBeenCalledTimes(4);
+        expect(hosts).toEqual(['a.test', 'b.test', 'a.test', 'b.test']);
+        expect(res).toHaveLength(1);
+    });
+
+    test('gives up with a helpful error after maxRounds', async () => {
+        global.fetch = jest.fn(() => respond(504));
+        await expect(fetchRestrictions(routeLine, {}, { urls: ['https://a.test/i'], maxRounds: 3, wait: () => Promise.resolve() }))
+            .rejects.toThrow(/after 3 rounds.*a\.test returned 504/);
+        expect(global.fetch).toHaveBeenCalledTimes(3);
+    });
 });

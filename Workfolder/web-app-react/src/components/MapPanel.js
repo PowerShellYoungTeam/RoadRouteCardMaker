@@ -26,9 +26,22 @@ function FitRoute({ geometry }) {
 
 const restrictionColour = r => (r.conflict ? '#d00' : r.onRoute ? '#f80' : '#888');
 
-export default function MapPanel({ waypoints, geometry, restrictions, onAddWaypoint, onMoveWaypoint }) {
+// Leaflet caches its container size; tell it when the splitters change the map's size.
+function AutoResize() {
+    const map = useMap();
+    useEffect(() => {
+        const ro = new ResizeObserver(() => map.invalidateSize({ pan: false }));
+        ro.observe(map.getContainer());
+        return () => ro.disconnect();
+    }, [map]);
+    return null;
+}
+
+export default function MapPanel({ waypoints, geometry, restrictions, onAddWaypoint, onMoveWaypoint, height }) {
     return (
+        <div className="map-wrap" style={height ? { height } : undefined}>
         <MapContainer center={[51.2, -1.8]} zoom={8} className="map" scrollWheelZoom>
+            <AutoResize />
             <TileLayer
                 url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 maxZoom={19}
@@ -67,5 +80,6 @@ export default function MapPanel({ waypoints, geometry, restrictions, onAddWaypo
                 </Marker>
             ))}
         </MapContainer>
+        </div>
     );
 }
