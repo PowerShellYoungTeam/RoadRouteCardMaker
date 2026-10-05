@@ -1,70 +1,54 @@
-# Getting Started with Create React App
+# Road Movement Route Card Maker (React)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Browser app that plans a road move over OpenStreetMap data and produces a route card with an
+INSTRUCTIONS block (items 1–17) and a ROUTE DETAILS table: Ser, From, To, Route, Dir, Distance,
+Total Distance and Total Time.
 
-## Available Scripts
+## Run
 
-In the project directory, you can run:
+```bash
+npm ci
+npm start        # http://localhost:3000
+npm test
+npm run build
+```
 
-### `npm start`
+## Workflow
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. Click the map, or use the search box, to add waypoints. Drag the markers to adjust them.
+2. In **Settings**, choose:
+   - the routing engine;
+   - the serial mode: **waypoint** gives one serial per leg, **auto** splits at major road changes;
+   - the location format: lat/long, OS grid, or both;
+   - the vehicle dimensions (height, width, length, weight, axle load, HGV).
+3. Click **Plan route**. You can then edit, merge, split or delete serials. Manual edits survive
+   when the card is recomputed.
+4. Click **Check HGV restrictions**. This queries Overpass for limits along the route: `maxheight`,
+   `maxweight`, `maxaxleload`, `maxwidth`, `maxlength`, `hgv=no` and height restrictors. Matches
+   appear on the map and are added to **17. Critical pts**. Any limit your vehicle breaks is
+   prefixed with `!!`.
+5. Fill in the instructions, then use **Print / PDF** or **Export JSON**. To get an `.xlsx`, run
+   `../powershell` (`New-RouteCardXlsx`) on the exported JSON.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Routing engines
 
-### `npm test`
+| Engine | Vehicle-aware | Notes |
+|---|---|---|
+| Valhalla (default) | Yes (truck costing) | Uses the public FOSSGIS server by default. Self-host for heavy use. |
+| OpenRouteService | Yes (`driving-hgv`) | Needs a free API key, which is stored in localStorage. |
+| OSRM | No (car) | Fast, but ignores vehicle dimensions. |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+You can change the server URL for each engine in Settings, for example to point at a self-hosted instance.
 
-### `npm run build`
+## OSM restrictions and caveats
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- OSM coverage of height, weight and width limits is incomplete. Treat the results as prompts for a
+  proper route recce, not as clearance.
+- Public Overpass servers are often busy. The app tries several mirrors (60 s timeout each). You can
+  also set a custom Overpass URL in Settings.
+- Map data © OpenStreetMap contributors (ODbL). Geocoding is by Nominatim; keep usage light.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Dev note
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+On Windows, Jest finds no tests if the project path contains `\.` (for example `C:\Users\me\.copilot\...`).
+Copy the project to a plain path to run the tests.
