@@ -61,3 +61,14 @@ test('overpass query uses around filter and simplifies straight lines', () => {
     expect(q).toContain('(around:25,51.000000,-1.000000,51.000000,-0.980000)');
     expect(q).toContain('height_restrictor');
 });
+
+test('ignores "no limit" values and implausible tagging', () => {
+    const els = [
+        { type: 'way', id: 10, tags: { highway: 'trunk', ref: 'A303', maxheight: 'default' }, geometry: [{ lat: 51.0, lon: -0.995 }, { lat: 51.0, lon: -0.994 }] },
+        { type: 'node', id: 11, tags: { barrier: 'gate', 'maxwidth:physical': '160' }, lat: 51.0, lon: -0.993 },
+        { type: 'way', id: 12, tags: { highway: 'trunk', ref: 'A303', maxheight: '4.1' }, geometry: [{ lat: 51.0, lon: -0.992 }, { lat: 51.0, lon: -0.991 }] },
+    ];
+    const res = analyseElements(els, routeLine, {}, 30);
+    expect(res).toHaveLength(1);
+    expect(res[0].description).toMatch(/4\.10 m/);
+});

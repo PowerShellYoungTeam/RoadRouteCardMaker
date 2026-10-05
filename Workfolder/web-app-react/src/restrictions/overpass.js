@@ -16,6 +16,9 @@ const KIND_LABELS = {
 };
 const VEHICLE_KEY = { maxheight: 'heightM', maxweight: 'weightT', maxaxleload: 'axleLoadT', maxwidth: 'widthM', maxlength: 'lengthM' };
 const HGV_WEIGHT_T = 3.5;
+const NO_LIMIT_VALUES = /^(default|none|no)$/i;
+const MAX_PLAUSIBLE_M = 50;
+const MAX_PLAUSIBLE_T = 200;
 
 // ---------- value parsing (OSM tag values -> metres / tonnes) ----------
 export function parseLength(raw) {
@@ -126,7 +129,10 @@ export function analyseElements(elements, routeLine, vehicle = {}, bufferM = 30)
 
         for (const e of entries) {
             const isLen = ['maxheight', 'maxwidth', 'maxlength'].includes(e.kind);
+            // "default"/"none"/"no" mean no signed limit; skip them and obvious tagging errors (e.g. cm entered as m).
+            if (e.kind !== 'hgv' && NO_LIMIT_VALUES.test(String(e.value).trim())) continue;
             const metric = e.kind === 'hgv' ? null : isLen ? parseLength(e.value) : parseWeight(e.value);
+            if (metric != null && (metric <= 0 || metric > (isLen ? MAX_PLAUSIBLE_M : MAX_PLAUSIBLE_T))) continue;
             let conflict = false;
             if (e.kind === 'hgv') conflict = isHgv(vehicle) && e.value === 'no';
             else if (metric != null) {
