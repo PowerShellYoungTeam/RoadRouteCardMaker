@@ -72,6 +72,11 @@ body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select:
 
 .instructions-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 12px; }
 .instructions-form .wide { grid-column: 1 / -1; }
+.instructions-form .instr-group { grid-column: 1 / -1; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 8px 4px; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 0 12px; }
+.instructions-form .instr-group legend { font-size: 0.85rem; padding: 0 4px; }
+.instructions-form .instr-subgroup { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 8px; }
+.instructions-form .instr-subgroup label { width: 110px; }
+.instructions-form .instr-subhead { font-size: 0.8rem; font-weight: 600; align-self: center; min-width: 40px; }
 
 .route-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .route-table th, .route-table td { border: 1px solid #000; padding: 3px 5px; vertical-align: top; text-align: left; }
@@ -92,6 +97,7 @@ body.resizing-y, body.resizing-y * { cursor: row-resize !important; user-select:
 .instr-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
 .instr { display: flex; gap: 6px; font-size: 0.9rem; padding: 2px 0; }
 .instr.sub { padding-left: 18px; }
+.instr.sub2 { padding-left: 36px; }
 .instr-label { white-space: nowrap; }
 .instr-value { flex: 1; border-bottom: 1px dotted #000; min-height: 1.1em; white-space: pre-wrap; }
 .caveat { font-size: 0.75rem; font-style: italic; margin: 8px 0 0; }

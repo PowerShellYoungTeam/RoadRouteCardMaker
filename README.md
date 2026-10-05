@@ -1,7 +1,7 @@
 # RoadRouteCardMaker
 
 Plan a road move on OpenStreetMap and produce a military-style **route card**: the INSTRUCTIONS
-block (items 1-17) plus the ROUTE DETAILS table. It is built with big and heavy vehicles in mind
+block (items 1-16, short-form field book wording) plus the ROUTE DETAILS table. It is built with big and heavy vehicles in mind
 and flags height, weight and width limits along the route.
 
 ```
@@ -25,7 +25,7 @@ Ser | From | To | Route | Dir | Distance | Total Distance | Total Time
   - `hgv=no` and similar access tags;
   - height barriers.
 
-  Matches appear on the map and are added to **17. Critical pts**. Anything your vehicle exceeds
+  Matches appear on the map and are added to **16. Critical Points**. Anything your vehicle exceeds
   is marked `!!`.
 - **Output.** Print or save as PDF, export or import JSON, or build a formatted Excel workbook
   with PowerShell.

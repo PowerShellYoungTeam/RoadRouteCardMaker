@@ -27,7 +27,7 @@ Try it with `..\schema\sample-route-card.json`.
 
 ## Workbook layout
 
-- **Route Card**: the INSTRUCTIONS block (items 1–17, with 9a/9b) and the ROUTE DETAILS
+- **Route Card**: the INSTRUCTIONS block (items 1–16, with sub-fields for Vehicle Distances, Convoy Flags and Contact Telephone) and the ROUTE DETAILS
   table (Ser, From, To, Route, Dir, Distance, Total Distance, Total Time, lettered (a)–(h)).
   It prints on A4 landscape, fitted to the page width, with the header rows repeated on each page.
 - **Waypoints**, **Restrictions** and **Vehicle**: supporting data. Restrictions that conflict

@@ -1,8 +1,18 @@
 # Road Movement Route Card Maker (React)
 
 Browser app that plans a road move over OpenStreetMap data and produces a route card with an
-INSTRUCTIONS block (items 1–17) and a ROUTE DETAILS table: Ser, From, To, Route, Dir, Distance,
+INSTRUCTIONS block (items 1–16) and a ROUTE DETAILS table: Ser, From, To, Route, Dir, Distance,
 Total Distance and Total Time.
+
+The INSTRUCTIONS items follow the short-form field book: 1. Move From, 2. Move To,
+3. Time/Date at Start Point, 4. Location of Start Point, 5. Location of Release Point,
+6. Average speed, 7. Packet Intervals, 8. Vehicle Distances (Day/Night × M/Way/A Roads),
+9. Halts, 10. Lights, 11. Traffic, 12. Medical, 13. Recovery, 14. Convoy Flags (Front Vehicle,
+Rear Vehicle, Breakdown), 15. Contact Telephone (Sqn Ops, TP Comd), 16. Critical Points.
+New cards are pre-filled with these defaults: vehicle distances of 100 m (Day, M/Way) and 50 m otherwise,
+Lights Dipped, Traffic Varying, and Blue/Green/Yellow flags. Cards saved in the old 1–17 layout (`schemaVersion` 1) are
+converted when imported. The old date and time past SP are combined into item 3, each day/night distance fills both road types,
+the old convoy flags text goes to Front Vehicle, and the old contact tel goes to Sqn Ops.
 
 ## Run
 
@@ -25,7 +35,7 @@ npm run build
    when the card is recomputed.
 4. Click **Check HGV restrictions**. This queries Overpass for limits along the route: `maxheight`,
    `maxweight`, `maxaxleload`, `maxwidth`, `maxlength`, `hgv=no` and height restrictors. Matches
-   appear on the map and are added to **17. Critical pts**. Any limit your vehicle breaks is
+   appear on the map and are added to **16. Critical Points**. Any limit your vehicle breaks is
    prefixed with `!!`.
 5. Fill in the instructions, then use **Print / PDF** or **Export JSON**. To get an `.xlsx`, run
    `../powershell` (`New-RouteCardXlsx`) on the exported JSON.

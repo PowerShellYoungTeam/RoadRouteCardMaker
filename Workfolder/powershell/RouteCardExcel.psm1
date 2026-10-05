@@ -12,32 +12,40 @@ $script:Layout = @{
     Sheet          = 'Route Card'
     Title          = 'A1'
     Left           = [ordered]@{ # label cell -> value range (columns A:B label, C:D value)
-        movFrom              = @{ Row = 4;  Label = '1. Mov from' }
-        movTo                = @{ Row = 5;  Label = '2. Mov to' }
-        date                 = @{ Row = 6;  Label = '3. Date' }
-        timePastSp           = @{ Row = 7;  Label = '4. Time past SP' }
-        sp                   = @{ Row = 8;  Label = '5. SP' }
-        relPt                = @{ Row = 9;  Label = '6. Rel Pt' }
-        averageSpeed         = @{ Row = 10; Label = '7. Average speed' }
-        timeBetweenPackets   = @{ Row = 11; Label = '8. Time between packets' }
-        distBetweenVehsDay   = @{ Row = 13; Label = '    a. By day' }
-        distBetweenVehsNight = @{ Row = 14; Label = '    b. By night' }
+        movFrom            = @{ Row = 4;  Label = '1. Move From' }
+        movTo              = @{ Row = 5;  Label = '2. Move To' }
+        timeDateSp         = @{ Row = 6;  Label = '3. Time/Date at Start Point' }
+        sp                 = @{ Row = 7;  Label = '4. Location of Start Point' }
+        relPt              = @{ Row = 8;  Label = '5. Location of Release Point' }
+        averageSpeed       = @{ Row = 9;  Label = '6. Average speed' }
+        timeBetweenPackets = @{ Row = 10; Label = '7. Packet Intervals' }
+        vehDistDayMway     = @{ Row = 12; Label = '    Day - M/Way'; Default = '100 m' }
+        vehDistDayARoads   = @{ Row = 13; Label = '    Day - A Roads'; Default = '50 m' }
+        vehDistNightMway   = @{ Row = 14; Label = '    Night - M/Way'; Default = '50 m' }
+        vehDistNightARoads = @{ Row = 15; Label = '    Night - A Roads'; Default = '50 m' }
     }
     Right          = [ordered]@{ # columns E label, F:H value
-        halts       = @{ Row = 4;  Label = '10. Halts' }
-        lts         = @{ Row = 5;  Label = '11. Lts' }
-        tfc         = @{ Row = 6;  Label = '12. Tfc' }
-        med         = @{ Row = 7;  Label = '13. Med' }
-        rec         = @{ Row = 8;  Label = '14. Rec' }
-        convoyFlags = @{ Row = 9;  Label = '15. Convoy flags' }
-        contactTel  = @{ Row = 10; Label = '16. Contact tel' }
-        criticalPts = @{ Row = 11; Label = '17. Critical pts'; LastRow = 14 }
+        halts               = @{ Row = 4;  Label = '9. Halts' }
+        lts                 = @{ Row = 5;  Label = '10. Lights'; Default = 'Dipped' }
+        tfc                 = @{ Row = 6;  Label = '11. Traffic'; Default = 'Varying' }
+        med                 = @{ Row = 7;  Label = '12. Medical' }
+        rec                 = @{ Row = 8;  Label = '13. Recovery' }
+        convoyFlagFront     = @{ Row = 10; Label = '    Front Vehicle'; Default = 'Blue Flag' }
+        convoyFlagRear      = @{ Row = 11; Label = '    Rear Vehicle'; Default = 'Green Flag' }
+        convoyFlagBreakdown = @{ Row = 12; Label = '    Breakdown'; Default = 'Yellow Flag' }
+        contactTelSqnOps    = @{ Row = 14; Label = '    Sqn Ops' }
+        contactTelTpComd    = @{ Row = 15; Label = '    TP Comd' }
+        criticalPts         = @{ Row = 16; Label = '16. Critical Points'; LastRow = 19 }
     }
-    Dist9Row       = 12
-    RouteTitleRow  = 16
-    HeaderRow      = 17
-    LetterRow      = 18
-    FirstSerialRow = 19
+    Headings       = @{ # item headings whose values are sub-fields
+        A11 = '8. Vehicle Distances'
+        E9  = '14. Convoy Flags'
+        E13 = '15. Contact Telephone'
+    }
+    RouteTitleRow  = 21
+    HeaderRow      = 22
+    LetterRow      = 23
+    FirstSerialRow = 24
     Columns        = @(
         @{ Key = 'ser';           Header = 'Ser';            Letter = '(a)'; Width = 6 }
         @{ Key = 'from';          Header = 'From';           Letter = '(b)'; Width = 30 }
@@ -56,10 +64,30 @@ function Get-Prop {
     return $Default
 }
 
-function Format-CardDate {
-    param([string]$Value)
-    if ($Value -match '^(\d{4})-(\d{2})-(\d{2})$') { return "$($Matches[3])/$($Matches[2])/$($Matches[1])" }
-    return $Value
+function ConvertTo-InstructionsV2 {
+    # Maps schemaVersion 1 instruction keys onto the version 2 items (same rules as the web app).
+    param($Old)
+    $out = [ordered]@{}
+    foreach ($p in $Old.PSObject.Properties) { $out[$p.Name] = $p.Value }
+    $has = { param($n) $out.Contains($n) }
+    if ((& $has 'date') -or (& $has 'timePastSp')) {
+        $date = [string]$out['date']
+        if ($date -match '^(\d{4})-(\d{2})-(\d{2})$') { $date = "$($Matches[3])/$($Matches[2])/$($Matches[1])" }
+        $out['timeDateSp'] = (@([string]$out['timePastSp'], $date) | Where-Object { $_ }) -join ' '
+    }
+    if (& $has 'distBetweenVehsDay') { $out['vehDistDayMway'] = $out['vehDistDayARoads'] = $out['distBetweenVehsDay'] }
+    if (& $has 'distBetweenVehsNight') { $out['vehDistNightMway'] = $out['vehDistNightARoads'] = $out['distBetweenVehsNight'] }
+    if (& $has 'convoyFlags') { $out['convoyFlagFront'] = $out['convoyFlags']; $out['convoyFlagRear'] = ''; $out['convoyFlagBreakdown'] = '' }
+    if (& $has 'contactTel') { $out['contactTelSqnOps'] = $out['contactTel'] }
+    foreach ($k in 'date', 'timePastSp', 'distBetweenVehsDay', 'distBetweenVehsNight', 'convoyFlags', 'contactTel') { $out.Remove($k) }
+    [pscustomobject]$out
+}
+
+function Get-InstructionValue {
+    # Missing keys take the field-book default; keys present (even blank) keep their value.
+    param($Instructions, [string]$Key, $Spec)
+    $default = if ($Spec.ContainsKey('Default')) { $Spec.Default } else { '' }
+    [string](Get-Prop $Instructions $Key $default)
 }
 
 function Set-Border {
@@ -91,7 +119,8 @@ function New-RouteCardXlsx {
     )
     process {
         $card = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
-        if ((Get-Prop $card 'schemaVersion' 0) -ne 1) { throw "Unsupported route card schemaVersion in '$Path'." }
+        $version = Get-Prop $card 'schemaVersion' 0
+        if ($version -notin 1, 2) { throw "Unsupported route card schemaVersion in '$Path'." }
         if (-not $OutputPath) { $OutputPath = [IO.Path]::ChangeExtension(($Path -replace '\.routecard\.json$', '.json'), '.xlsx') }
         $OutputPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
         if ((Test-Path -LiteralPath $OutputPath) -and -not $Force) { throw "'$OutputPath' exists. Use -Force to overwrite." }
@@ -100,6 +129,7 @@ function New-RouteCardXlsx {
 
         $L = $script:Layout
         $instr = Get-Prop $card 'instructions' ([pscustomobject]@{})
+        if ($version -eq 1) { $instr = ConvertTo-InstructionsV2 $instr }
         $pkg = Open-ExcelPackage -Path $OutputPath -Create
         try {
             $ws = Add-Worksheet -ExcelPackage $pkg -WorksheetName $L.Sheet
@@ -123,13 +153,10 @@ function New-RouteCardXlsx {
                 $r = $L.Left[$key].Row
                 $ws.Cells["A$r"].Value = $L.Left[$key].Label
                 $ws.Cells["A${r}:B$r"].Merge = $true
-                $value = Get-Prop $instr $key
-                if ($key -eq 'date') { $value = Format-CardDate $value }
-                $ws.Cells["C$r"].Value = [string]$value
+                $ws.Cells["C$r"].Value = Get-InstructionValue $instr $key $L.Left[$key]
                 $ws.Cells["C${r}:D$r"].Merge = $true
                 $ws.Cells["C${r}:D$r"].Style.Border.Bottom.Style = 'Dotted'
             }
-            $ws.Cells["A$($L.Dist9Row)"].Value = '9. Dist between vehs'
 
             foreach ($key in $L.Right.Keys) {
                 $spec = $L.Right[$key]
@@ -137,7 +164,7 @@ function New-RouteCardXlsx {
                 $last = if ($spec.ContainsKey('LastRow')) { $spec.LastRow } else { $r }
                 $ws.Cells["E$r"].Value = $spec.Label
                 $ws.Cells["E$r"].Style.VerticalAlignment = 'Top'
-                $ws.Cells["F$r"].Value = [string](Get-Prop $instr $key)
+                $ws.Cells["F$r"].Value = Get-InstructionValue $instr $key $spec
                 $range = $ws.Cells["F${r}:H$last"]
                 $range.Merge = $true
                 $range.Style.WrapText = $true
@@ -149,6 +176,8 @@ function New-RouteCardXlsx {
                     for ($k = $r; $k -le $last; $k++) { $ws.Row($k).Height = $height }
                 }
             }
+
+            foreach ($addr in $L.Headings.Keys) { $ws.Cells[$addr].Value = $L.Headings[$addr] }
 
             # ROUTE DETAILS
             $ws.Cells["A$($L.RouteTitleRow)"].Value = 'ROUTE DETAILS'
@@ -269,7 +298,6 @@ function ConvertFrom-RouteCardXlsx {
             $instructions = [ordered]@{}
             foreach ($key in $L.Left.Keys) { $instructions[$key] = & $text "C$($L.Left[$key].Row)" }
             foreach ($key in $L.Right.Keys) { $instructions[$key] = & $text "F$($L.Right[$key].Row)" }
-            if ($instructions.date -match '^(\d{2})/(\d{2})/(\d{4})$') { $instructions.date = "$($Matches[3])-$($Matches[2])-$($Matches[1])" }
 
             $serials = [System.Collections.Generic.List[object]]::new()
             $row = $L.FirstSerialRow
@@ -289,7 +317,7 @@ function ConvertFrom-RouteCardXlsx {
                     })
             }
             $card = [ordered]@{
-                schemaVersion = 1
+                schemaVersion = 2
                 title         = (& $text 'A1')
                 instructions  = $instructions
                 serials       = $serials

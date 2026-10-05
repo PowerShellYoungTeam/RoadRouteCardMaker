@@ -235,14 +235,14 @@ describe('toGpx', () => {
     test('excludes personal and identifying card metadata', () => {
         const card = {
             title: 'Route Card',
-            instructions: { movFrom: 'Saltford', movTo: 'Keynsham', date: '2025-06-14', contactTel: '07700 900123' },
+            instructions: { movFrom: 'Saltford', movTo: 'Keynsham', timeDateSp: '0800 14/06/2025', contactTelSqnOps: '07700 900123', contactTelTpComd: '07700 900456' },
             driver: 'Pte Example', truck: 'TRUCK-42', vehicle: { registration: 'AB12 CDE' },
         };
         const serials = [leg('ST 668 664', 'ST 700 650', { fromCp: 'Start' })];
         const { points } = buildGpxRoute(serials);
         const xml = toGpx(points, { name: defaultRouteName(card) });
         expect(xml).toContain('<name>Saltford to Keynsham</name>');
-        for (const secret of ['2025-06-14', '07700', 'Pte Example', 'TRUCK-42', 'AB12 CDE', '<time', '<author', '<email', '<link']) {
+        for (const secret of ['14/06/2025', '07700', 'Pte Example', 'TRUCK-42', 'AB12 CDE', '<time', '<author', '<email', '<link']) {
             expect(xml).not.toContain(secret);
         }
     });
