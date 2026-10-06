@@ -75,6 +75,7 @@ export function normaliseValhalla(data, truckAware = true) {
                 start: pt(geometry[m.begin_shape_index] || geometry[0]),
                 end: pt(geometry[m.end_shape_index] || geometry[geometry.length - 1]),
                 towards,
+                geometry: geometry.slice(m.begin_shape_index ?? 0, (m.end_shape_index ?? geometry.length - 1) + 1),
             };
         });
         return { distanceM: leg.summary.length * 1000, durationS: leg.summary.time, geometry, steps };
@@ -132,6 +133,7 @@ export function normaliseOrs(data) {
                 start: pt(geometry[s.way_points[0]]),
                 end: pt(geometry[s.way_points[1]]),
                 towards: s.exit_number ? `exit ${s.exit_number}` : '',
+                geometry: geometry.slice(s.way_points[0], s.way_points[1] + 1),
             })),
         };
     });
@@ -170,11 +172,10 @@ export function normaliseOsrm(data) {
                 start: { lat: s.maneuver.location[1], lon: s.maneuver.location[0] },
                 end: pt(g[g.length - 1] || [s.maneuver.location[1], s.maneuver.location[0]]),
                 towards: s.destinations || '',
-                _geometry: g,
+                geometry: g,
             };
         });
-        const geometry = steps.flatMap(s => s._geometry);
-        steps.forEach(s => delete s._geometry);
+        const geometry = steps.flatMap(s => s.geometry);
         return { distanceM: leg.distance, durationS: leg.duration, geometry, steps };
     });
     return {

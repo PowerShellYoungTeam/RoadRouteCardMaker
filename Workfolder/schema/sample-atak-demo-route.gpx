@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="RoadRouteCardMaker" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata><name>EX DEMO - Bath to Bristol (fictional)</name></metadata>
+  <rte>
+    <name>EX DEMO - Bath to Bristol (fictional)</name>
+    <desc>Fictional demonstration route using public places. Straight-line segments only.</desc>
+    <rtept lat="51.387513" lon="-2.368563"><name>SP Royal Crescent</name></rtept>
+    <rtept lat="51.389202" lon="-2.401630"/>
+    <rtept lat="51.400713" lon="-2.450606"><name>CP1 Saltford</name></rtept>
+    <rtept lat="51.414002" lon="-2.499626"/>
+    <rtept lat="51.437167" lon="-2.547355"><name>CP2 Brislington</name></rtept>
+    <rtept lat="51.448696" lon="-2.580590"><name>RP Temple Meads</name></rtept>
+  </rte>
+</gpx>

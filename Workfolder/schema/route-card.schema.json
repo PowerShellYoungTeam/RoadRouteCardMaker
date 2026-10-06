@@ -5,30 +5,34 @@
   "type": "object",
   "required": ["schemaVersion", "instructions", "serials"],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "enum": [1, 2], "description": "2 = current layout. Version 1 cards (old 1-17 instruction keys) are migrated on load." },
     "title": { "type": "string" },
     "instructions": {
       "type": "object",
-      "description": "INSTRUCTIONS block items 1-17",
+      "description": "INSTRUCTIONS block items 1-16 (short-form field book wording). Defaults shown are applied to new cards.",
       "properties": {
-        "movFrom": { "type": "string", "description": "1. Mov from" },
-        "movTo": { "type": "string", "description": "2. Mov to" },
-        "date": { "type": "string", "description": "3. Date" },
-        "timePastSp": { "type": "string", "description": "4. Time past SP (HHMM)" },
-        "sp": { "type": "string", "description": "5. SP (start point)" },
-        "relPt": { "type": "string", "description": "6. Rel Pt (release point)" },
-        "averageSpeed": { "type": "string", "description": "7. Average speed (number in card units per hour, e.g. 40)" },
-        "timeBetweenPackets": { "type": "string", "description": "8. Time between packets" },
-        "distBetweenVehsDay": { "type": "string", "description": "9a. Dist between vehs by day" },
-        "distBetweenVehsNight": { "type": "string", "description": "9b. Dist between vehs by night" },
-        "halts": { "type": "string", "description": "10. Halts" },
-        "lts": { "type": "string", "description": "11. Lts (lights)" },
-        "tfc": { "type": "string", "description": "12. Tfc (traffic)" },
-        "med": { "type": "string", "description": "13. Med" },
-        "rec": { "type": "string", "description": "14. Rec (recovery)" },
-        "convoyFlags": { "type": "string", "description": "15. Convoy flags" },
-        "contactTel": { "type": "string", "description": "16. Contact tel" },
-        "criticalPts": { "type": "string", "description": "17. Critical pts (multi-line)" }
+        "movFrom": { "type": "string", "description": "1. Move From" },
+        "movTo": { "type": "string", "description": "2. Move To" },
+        "timeDateSp": { "type": "string", "description": "3. Time/Date at Start Point (free text, e.g. 0800 12/10/26)" },
+        "sp": { "type": "string", "description": "4. Location of Start Point (grid ref). Blank = grid ref of the first serial From (b)." },
+        "relPt": { "type": "string", "description": "5. Location of Release Point (grid ref of the last controlled point). Blank = grid ref of the last serial To (c)." },
+        "averageSpeed": { "type": "string", "description": "6. Average speed (number in card units per hour, e.g. 40)" },
+        "timeBetweenPackets": { "type": "string", "description": "7. Packet Intervals" },
+        "vehDistDayMway": { "type": "string", "description": "8. Vehicle Distances - Day - M/Way (default 100 m)" },
+        "vehDistDayARoads": { "type": "string", "description": "8. Vehicle Distances - Day - A Roads (default 50 m)" },
+        "vehDistNightMway": { "type": "string", "description": "8. Vehicle Distances - Night - M/Way (default 50 m)" },
+        "vehDistNightARoads": { "type": "string", "description": "8. Vehicle Distances - Night - A Roads (default 50 m)" },
+        "halts": { "type": "string", "description": "9. Halts" },
+        "lts": { "type": "string", "description": "10. Lights (default Dipped)" },
+        "tfc": { "type": "string", "description": "11. Traffic (default Varying)" },
+        "med": { "type": "string", "description": "12. Medical" },
+        "rec": { "type": "string", "description": "13. Recovery" },
+        "convoyFlagFront": { "type": "string", "description": "14. Convoy Flags - Front Vehicle (default Blue Flag)" },
+        "convoyFlagRear": { "type": "string", "description": "14. Convoy Flags - Rear Vehicle (default Green Flag)" },
+        "convoyFlagBreakdown": { "type": "string", "description": "14. Convoy Flags - Breakdown (default Yellow Flag)" },
+        "contactTelSqnOps": { "type": "string", "description": "15. Contact Telephone - Sqn Ops" },
+        "contactTelTpComd": { "type": "string", "description": "15. Contact Telephone - TP Comd" },
+        "criticalPts": { "type": "string", "description": "16. Critical Points (multi-line)" }
       },
       "additionalProperties": { "type": "string" }
     },
@@ -48,7 +52,8 @@
       "properties": {
         "engine": { "enum": ["valhalla", "ors", "osrm"] },
         "engineUrls": { "type": "object", "additionalProperties": { "type": "string" } },
-        "serialMode": { "enum": ["waypoint", "auto"] },
+        "serialMode": { "enum": ["waypoint", "auto", "junction"], "description": "junction = one serial per junction/turn, for ATAK GPX export" },
+        "bendToleranceM": { "type": "number", "description": "Junction mode: max deviation (m) of GPX bend points from the router's road line (default 20)" },
         "locationFormat": { "enum": ["latlon", "grid", "both"] },
         "units": { "enum": ["km", "mi"] },
         "timeSource": { "enum": ["speed", "router"] },
@@ -82,7 +87,23 @@
           "distanceM": { "type": "number" },
           "durationS": { "type": "number" },
           "fromPoint": { "$ref": "#/$defs/point" },
-          "toPoint": { "$ref": "#/$defs/point" }
+          "toPoint": { "$ref": "#/$defs/point" },
+          "fromCp": { "type": "string", "description": "Optional checkpoint name for the From point (GPX export only, not printed)" },
+          "toCp": { "type": "string", "description": "Optional checkpoint name for the To point (GPX export only, not printed)" },
+          "steps": {
+            "type": "array",
+            "description": "Router manoeuvres in this serial (used to rebuild Route (d) and Dir (e))",
+            "items": {
+              "type": "object",
+              "properties": {
+                "road": { "type": "string" },
+                "distanceM": { "type": "number" },
+                "start": { "$ref": "#/$defs/point" },
+                "end": { "$ref": "#/$defs/point" },
+                "shape": { "type": "array", "items": { "$ref": "#/$defs/point" }, "description": "Junction mode: simplified road bend points between start and end, exported to GPX as unnamed route points" }
+              }
+            }
+          }
         }
       }
     },

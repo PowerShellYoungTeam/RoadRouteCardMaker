@@ -38,8 +38,21 @@ export default function SettingsPanel({ settings, vehicle, apiKey, onSettings, o
                 <select value={settings.serialMode} onChange={e => set('serialMode', e.target.value)}>
                     <option value="waypoint">One per waypoint leg</option>
                     <option value="auto">Auto (one per main road change)</option>
+                    <option value="junction">Junctions &amp; bends (for ATAK GPX)</option>
                 </select>
             </label>
+            {settings.serialMode === 'junction' && (
+                <>
+                    <label>Bend tolerance (m)
+                        <input
+                            type="number" min="1" max="500"
+                            value={settings.bendToleranceM ?? 20}
+                            onChange={e => set('bendToleranceM', Number(e.target.value) || 20)}
+                        />
+                    </label>
+                    <div className="hint">One serial per junction, each named as an ATAK checkpoint. Road bends are added to the GPX as unnamed points; a smaller tolerance follows the road more closely but adds more points.</div>
+                </>
+            )}
             <label>Locations
                 <select value={settings.locationFormat} onChange={e => set('locationFormat', e.target.value)}>
                     <option value="both">OS grid + lat/long</option>
@@ -55,7 +68,7 @@ export default function SettingsPanel({ settings, vehicle, apiKey, onSettings, o
             </label>
             <label>Total time from
                 <select value={settings.timeSource} onChange={e => set('timeSource', e.target.value)}>
-                    <option value="speed">Average speed (item 7)</option>
+                    <option value="speed">Average speed (item 6)</option>
                     <option value="router">Router estimate</option>
                 </select>
             </label>

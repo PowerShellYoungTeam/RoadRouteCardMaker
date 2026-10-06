@@ -3,10 +3,16 @@ import { ROUTE_COLUMNS } from '../model/routeCard';
 
 const EDITABLE = ['from', 'to', 'route', 'dir'];
 
-export default function RouteDetailsEditor({ serials, onEdit, onMerge, onSplit, onRemove, onAdd, onResetRow }) {
+const CHECKPOINT = { from: 'fromCp', to: 'toCp' };
+
+export default function RouteDetailsEditor({ serials, onEdit, onCheckpoint, onMerge, onSplit, onRemove, onAdd, onResetRow }) {
     return (
         <div className="panel">
             <h3>Route details (editable)</h3>
+            <p className="hint">
+                From/To accept an OS grid reference with its square letters (e.g. ST 668 664) or a decimal "lat, lon".
+                Checkpoint names are optional, used only for GPX export, and are not printed on the card.
+            </p>
             <table className="route-table editor">
                 <thead>
                     <tr>
@@ -31,6 +37,16 @@ export default function RouteDetailsEditor({ serials, onEdit, onMerge, onSplit, 
                                             />
                                         ) : (
                                             s[c.key]
+                                        )}
+                                        {CHECKPOINT[c.key] && (
+                                            <input
+                                                type="text"
+                                                className="checkpoint"
+                                                aria-label={`Leg ${i + 1} ${c.key} checkpoint name`}
+                                                placeholder="Checkpoint name (optional)"
+                                                value={s[CHECKPOINT[c.key]] || ''}
+                                                onChange={e => onCheckpoint(i, CHECKPOINT[c.key], e.target.value)}
+                                            />
                                         )}
                                     </td>
                                 ))}
