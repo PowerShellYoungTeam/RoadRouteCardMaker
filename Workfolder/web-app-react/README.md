@@ -34,7 +34,8 @@ npm run build
 1. Click the map, or use the search box, to add waypoints. Drag the markers to adjust them.
 2. In **Settings**, choose:
    - the routing engine;
-   - the serial mode: **waypoint** gives one serial per leg, **auto** splits at major road changes;
+   - the serial mode: **waypoint** gives one serial per leg, **auto** splits at major road changes,
+     and **junctions & bends** gives one serial per junction or turn, for ATAK (see below);
    - the location format: lat/long, OS grid, or both;
    - the vehicle dimensions (height, width, length, weight, axle load, HGV).
 3. Click **Plan route**. You can then edit, merge, split or delete serials. Manual edits survive
@@ -116,12 +117,33 @@ A leg endpoint is taken from:
   map points and lat/long. If the gap is larger, export is blocked and the panel says which legs
   are disconnected and by how far. Gaps are never bridged automatically.
 - **At least two different points** are required.
-- **Straight lines only.** The GPX contains only the leg endpoints. ATAK joins them with **straight
-  lines**, and the import does not snap them to roads. **This export does not produce a
-  road-following or HGV-safe route.**
-  - To follow bends and junctions more closely, split long serials or add manual legs, leaving
-    those intermediate points unnamed.
+- **Straight lines between points.** ATAK joins route points with **straight lines**, and the import
+  does not snap them to roads. In the **waypoint** and **auto** serial modes the GPX contains only
+  the leg endpoints. **No mode produces an HGV-safe route.**
+  - To follow bends and junctions more closely, use the **Junctions & bends** mode (below), or split
+    long serials or add manual legs, leaving those intermediate points unnamed.
   - Always check the route against the route card, the map and a recce.
+
+### Junctions & bends serial mode
+
+Choose **Settings → Serials → Junctions & bends (for ATAK GPX)** before (or after) **Plan route**.
+
+- **One serial per junction or turn** reported by the router. Steps shorter than 25 m (for example
+  a short slip road), and unnamed steps shorter than 100 m (mostly roundabouts), are folded into the
+  next serial.
+- **Junctions are named checkpoints.** Each junction gets a `toCp` such as `J3 A342/A303`, the first
+  point is named after the start waypoint, and the end of each waypoint leg after that waypoint.
+  ATAK imports each named point as a checkpoint. You can rename or clear any of them in the editor.
+- **Bends are unnamed points.** The router's road line for each serial is simplified so that no
+  part of it is more than the **Bend tolerance** (default 20 m) from the exported line. The
+  remaining bend points are written to the GPX as unnamed `<rtept>`s between the junctions; they
+  are not shown on the card. A smaller tolerance follows the road more closely but adds more
+  points. Points closer than 1 m together are dropped, as ATAK would drop them.
+- **Edited endpoints.** If you type over a serial's From or To, its bend points are left out (they
+  may no longer apply) and the panel warns that the serial exports as a straight line. Merging
+  serials keeps their bend points but drops the inner junction name.
+- **Still not HGV-safe.** The points follow the router's road geometry, but the router may be
+  wrong, and OSM data is incomplete. Check the route on the ground.
 
 ### Importing into ATAK
 

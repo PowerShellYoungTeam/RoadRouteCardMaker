@@ -52,7 +52,8 @@
       "properties": {
         "engine": { "enum": ["valhalla", "ors", "osrm"] },
         "engineUrls": { "type": "object", "additionalProperties": { "type": "string" } },
-        "serialMode": { "enum": ["waypoint", "auto"] },
+        "serialMode": { "enum": ["waypoint", "auto", "junction"], "description": "junction = one serial per junction/turn, for ATAK GPX export" },
+        "bendToleranceM": { "type": "number", "description": "Junction mode: max deviation (m) of GPX bend points from the router's road line (default 20)" },
         "locationFormat": { "enum": ["latlon", "grid", "both"] },
         "units": { "enum": ["km", "mi"] },
         "timeSource": { "enum": ["speed", "router"] },
@@ -88,7 +89,21 @@
           "fromPoint": { "$ref": "#/$defs/point" },
           "toPoint": { "$ref": "#/$defs/point" },
           "fromCp": { "type": "string", "description": "Optional checkpoint name for the From point (GPX export only, not printed)" },
-          "toCp": { "type": "string", "description": "Optional checkpoint name for the To point (GPX export only, not printed)" }
+          "toCp": { "type": "string", "description": "Optional checkpoint name for the To point (GPX export only, not printed)" },
+          "steps": {
+            "type": "array",
+            "description": "Router manoeuvres in this serial (used to rebuild Route (d) and Dir (e))",
+            "items": {
+              "type": "object",
+              "properties": {
+                "road": { "type": "string" },
+                "distanceM": { "type": "number" },
+                "start": { "$ref": "#/$defs/point" },
+                "end": { "$ref": "#/$defs/point" },
+                "shape": { "type": "array", "items": { "$ref": "#/$defs/point" }, "description": "Junction mode: simplified road bend points between start and end, exported to GPX as unnamed route points" }
+              }
+            }
+          }
         }
       }
     },

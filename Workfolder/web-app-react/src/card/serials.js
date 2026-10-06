@@ -1,14 +1,21 @@
 import { bearing, compassPoint, formatDistance, formatDuration, formatLocation, METRES_PER_MILE, parseOsGridRef, toOsGridRef } from '../geo/geo';
+import { simplifyLine } from '../restrictions/overpass';
 
 /*
  * A serial (row in ROUTE DETAILS) keeps raw data plus display strings:
  * { fromPoint, toPoint, steps, distanceM, durationS, overrides: { from?, to?, route?, dir? },
+ *   fromCp?, toCp?, legEndName?,
  *   ser, from, to, route, dir, distance, totalDistance, totalTime }
  * Display strings are derived by recompute(); a user-edited column is flagged in overrides and kept.
+ * In junction mode each step also carries `shape`: simplified road bend points between its start and end,
+ * used only by the GPX export. Full router step geometry is never stored on serials.
  */
 
 const MIN_ROAD_M = 300; // roads shorter than this are left out of the Route summary
 const AUTO_MIN_SERIAL_M = 1000; // auto mode: shorter road sections are folded into the previous serial
+const JUNCTION_MIN_STEP_M = 25; // junction mode: shorter manoeuvres (slip-road fragments etc.) are folded into the next
+const JUNCTION_MIN_UNNAMED_STEP_M = 100; // junction mode: unnamed manoeuvres (mostly roundabouts) shorter than this are folded too
+export const DEFAULT_BEND_TOLERANCE_M = 20;
 
 const shortName = name => (name || '').split(',')[0].trim();
 
@@ -31,7 +38,7 @@ function makeSerial(fromPoint, toPoint, steps) {
     return {
         fromPoint,
         toPoint,
-        steps,
+        steps: steps.map(({ geometry, ...st }) => st),
         distanceM: steps.reduce((a, s) => a + (s.distanceM || 0), 0),
         durationS: steps.reduce((a, s) => a + (s.durationS || 0), 0),
         overrides: {},
@@ -91,7 +98,67 @@ function autoSerials(route, waypoints) {
     return serials;
 }
 
+const round6 = v => Math.round(v * 1e6) / 1e6;
+
+// Road bend points of one router step, simplified to `toleranceM`, excluding the step's own start and end.
+export function stepShape(step, toleranceM = DEFAULT_BEND_TOLERANCE_M) {
+    const g = step.geometry;
+    if (!g || g.length < 3) return [];
+    return simplifyLine(g, Math.max(1, Number(toleranceM) || DEFAULT_BEND_TOLERANCE_M))
+        .slice(1, -1)
+        .map(([lat, lon]) => ({ lat: round6(lat), lon: round6(lon) }));
+}
+
+const mainRoad = steps => [...steps].filter(s => s.road).sort((a, b) => b.distanceM - a.distanceM)[0]?.road || '';
+
+// One serial per junction/turn (router manoeuvre). Each junction is named as a GPX checkpoint (toCp), e.g. "J3 A342/A303";
+// the end of every waypoint leg is named after the waypoint. Bends are kept as unnamed step shape points.
+function junctionSerials(route, waypoints, settings) {
+    const serials = [];
+    let jn = 0;
+    route.legs.forEach((leg, li) => {
+        const groups = [];
+        let pending = [];
+        for (const step of leg.steps) {
+            if (step.distanceM <= 0) continue;
+            pending.push({ ...step, shape: stepShape(step, settings.bendToleranceM) });
+            // Short steps, and short unnamed ones such as roundabouts, are folded into the next serial.
+            const minM = step.road ? JUNCTION_MIN_STEP_M : JUNCTION_MIN_UNNAMED_STEP_M;
+            if (step.distanceM >= minM) { groups.push(pending); pending = []; }
+        }
+        if (pending.length) (groups.length ? groups[groups.length - 1].push(...pending) : groups.push(pending));
+        const legEndName = shortName(waypoints[li + 1].name);
+        groups.forEach((steps, gi) => {
+            const road = mainRoad(steps);
+            const prevRoad = gi > 0 ? mainRoad(groups[gi - 1]) : null;
+            const nextRoad = gi < groups.length - 1 ? mainRoad(groups[gi + 1]) : null;
+            const jnName = (a, b) => (a && b && a !== b ? `Jn ${a}/${b}` : '');
+            const fromPoint = gi === 0
+                ? { ...waypoints[li], name: shortName(waypoints[li].name) }
+                : { ...steps[0].start, name: jnName(prevRoad, road) };
+            const last = gi === groups.length - 1;
+            const toPoint = last
+                ? { ...waypoints[li + 1], name: legEndName }
+                : { ...steps[steps.length - 1].end, name: jnName(road, nextRoad) };
+            let toCp;
+            if (last) toCp = legEndName || `WP ${li + 2}`;
+            else {
+                jn += 1;
+                toCp = road && nextRoad && road !== nextRoad ? `J${jn} ${road}/${nextRoad}` : `J${jn} ${nextRoad || road || 'turn'}`;
+            }
+            serials.push({
+                ...makeSerial(fromPoint, toPoint, steps),
+                legEndName,
+                ...(serials.length === 0 ? { fromCp: shortName(waypoints[0].name) || 'Start' } : {}),
+                toCp,
+            });
+        });
+    });
+    return serials;
+}
+
 export function buildSerials(route, waypoints, settings) {
+    if (settings.serialMode === 'junction') return junctionSerials(route, waypoints, settings);
     return settings.serialMode === 'auto' ? autoSerials(route, waypoints) : waypointSerials(route, waypoints);
 }
 

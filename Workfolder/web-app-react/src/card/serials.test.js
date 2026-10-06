@@ -1,4 +1,4 @@
-import { buildSerials, derivedStartRelease, resolveInstructions, editSerial, mergeWithNext, recompute, setCheckpoint, splitSerial, summariseRoads, addBlankSerial } from './serials';
+import { buildSerials, stepShape, derivedStartRelease, resolveInstructions, editSerial, mergeWithNext, recompute, setCheckpoint, splitSerial, summariseRoads, addBlankSerial } from './serials';
 import { defaultSettings } from '../model/routeCard';
 
 const step = (road, km, start, end, extra = {}) => ({
@@ -118,3 +118,51 @@ describe('Start Point / Release Point from the route table', () => {
         expect(r).toEqual({ sp: toOsGridRef(A.lat, A.lon), relPt: 'SU 364 454', movFrom: 'X' });
     });
 });
+
+describe('junction mode', () => {
+    // A345 step with a real bend (~1 km off the straight line).
+    const bend = { lat: 51.02, lon: -1.79 };
+    const geomRoute = {
+        legs: [
+            {
+                distanceM: 20000, durationS: 1200,
+                steps: [
+                    step('A345', 5, A, J1, { geometry: [[A.lat, A.lon], [bend.lat, bend.lon], [J1.lat, J1.lon]] }),
+                    step('A303', 10, J1, J2, { towards: 'Andover', geometry: [[J1.lat, J1.lon], [J2.lat, J2.lon]] }),
+                    step('Slip', 0.01, J2, J2),
+                    step('', 0.06, J2, J2), // roundabout
+                    step('A3057', 4.93, J2, B),
+                ],
+            },
+            { distanceM: 10000, durationS: 600, steps: [step('A3057', 10, B, C)] },
+        ],
+    };
+    const settings = { ...defaultSettings(), serialMode: 'junction' };
+
+    test('stepShape keeps real bends, drops endpoints and sub-tolerance wiggles', () => {
+        const g = [[A.lat, A.lon], [bend.lat, bend.lon], [J1.lat, J1.lon]];
+        expect(stepShape({ geometry: g }, 20)).toEqual([bend]);
+        expect(stepShape({ geometry: [[51, -1.8], [51.0000, -1.79999], [51, -1.79]] }, 20)).toEqual([]);
+        expect(stepShape({ geometry: [[A.lat, A.lon], [J1.lat, J1.lon]] }, 20)).toEqual([]);
+        expect(stepShape({}, 20)).toEqual([]);
+    });
+
+    test('one serial per junction, named checkpoints, short steps folded, geometry not stored', () => {
+        const serials = recompute(buildSerials(geomRoute, waypoints, settings), { ...settings, locationFormat: 'grid' }, { averageSpeed: '' });
+        expect(serials.map(s => s.route)).toEqual(['A345', 'A303', 'A3057', 'A3057']);
+        expect(serials.map(s => s.toCp)).toEqual(['J1 A345/A303', 'J2 A303/A3057', 'Andover', 'Stockbridge']);
+        expect(serials[0].fromCp).toBe('Tidworth Camp');
+        expect(serials[2].steps.map(st => st.road)).toEqual(['Slip', '', 'A3057']);
+        expect(serials[0].steps[0].shape).toEqual([bend]);
+        expect(serials.every(s => s.steps.every(st => !('geometry' in st)))).toBe(true);
+        expect(serials[3].totalDistance).toBe('30.0 km');
+        expect(JSON.stringify(serials)).not.toContain('geometry');
+    });
+
+    test('a smaller tolerance keeps more bend points', () => {
+        const zig = [[51, -1.8], [51.0001, -1.79], [51, -1.78]]; // ~11 m off the line
+        expect(stepShape({ geometry: zig }, 20)).toEqual([]);
+        expect(stepShape({ geometry: zig }, 5)).toHaveLength(1);
+    });
+});
+

@@ -99,7 +99,11 @@ export default function App() {
     };
 
     const rebuildSerials = settings => {
-        setCard(c => ({ ...c, settings, serials: route && settings.serialMode !== c.settings.serialMode ? buildSerials(route, c.waypoints, settings) : c.serials }));
+        setCard(c => {
+            const reshape = settings.serialMode !== c.settings.serialMode
+                || (settings.serialMode === 'junction' && settings.bendToleranceM !== c.settings.bendToleranceM);
+            return { ...c, settings, serials: route && !routeStale && reshape ? buildSerials(route, c.waypoints, settings) : c.serials };
+        });
     };
 
     const checkRestrictions = async () => {

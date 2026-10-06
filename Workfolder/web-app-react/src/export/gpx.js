@@ -18,7 +18,29 @@ export const STRAIGHT_LINE_WARNING =
     'GPX route points are joined by STRAIGHT LINES. This export does not calculate a road-following or HGV-safe ' +
     'route; add intermediate legs at bends and junctions and always confirm the route on the ground and against the route card.';
 
+export const ROAD_SHAPE_WARNING =
+    'Bend points from the router\'s road geometry are included between junctions, so the route follows the road to within the ' +
+    'bend tolerance. Segments between points are still straight, and this is NOT a guarantee that the route is HGV-safe; ' +
+    'always confirm it on the ground and against the route card.';
+// ATAK drops consecutive route points closer than 1 m.
+const MIN_VIA_SPACING_M = 1;
+
 const LABEL = { from: 'From (b)', to: 'To (c)' };
+
+// Road-shape points for a "Junctions & bends" serial: bend points of each step plus internal step boundaries, in order.
+// Returns null when the serial carries no shape, and [] when its From/To were typed over (shape may no longer apply).
+export function serialViaPoints(serial) {
+    const steps = serial.steps || [];
+    if (!steps.some(st => Array.isArray(st.shape))) return null;
+    const o = serial.overrides || {};
+    if (o.from || o.to) return [];
+    const pts = [];
+    steps.forEach((st, i) => {
+        if (i > 0 && st.start) pts.push(st.start);
+        (st.shape || []).forEach(p => pts.push(p));
+    });
+    return pts.filter(p => p && Number.isFinite(p.lat) && Number.isFinite(p.lon)).map(({ lat, lon }) => ({ lat, lon }));
+}
 
 const cleanName = v => String(v || '').replace(/\s+/g, ' ').trim();
 
@@ -79,6 +101,7 @@ function absorb(target, p) {
 export function buildGpxRoute(serials, { includeDescriptions = false } = {}) {
     const errors = [];
     const warnings = [STRAIGHT_LINE_WARNING];
+    let usedShape = false;
     if (!serials || serials.length === 0) {
         return { points: [], errors: ['There are no legs to export. Plan a route or add serials first.'], warnings };
     }
@@ -114,16 +137,32 @@ export function buildGpxRoute(serials, { includeDescriptions = false } = {}) {
         mergeName(start, cleanName(s.fromCp), `${leg} From`, errors);
         if (desc && !start.desc) start.desc = `Ser ${i + 1}: ${desc}`;
 
-        if (haversineMetres(start, to) <= Math.max(start.toleranceM, to.toleranceM)) {
-            warnings.push(`${leg} starts and ends at the same location, so it adds no route point.`);
-            absorb(start, to);
-            mergeName(start, cleanName(s.toCp), `${leg} To`, errors);
+        const via = serialViaPoints(s);
+        if (via) {
+            usedShape = true;
+            if (!via.length && (s.overrides?.from || s.overrides?.to)) {
+                warnings.push(`${leg} From/To was edited, so its road bend points were left out; it exports as a straight line.`);
+            }
+        }
+        let last = start;
+        for (const v of via || []) {
+            if (haversineMetres(last, v) <= MIN_VIA_SPACING_M || haversineMetres(v, to) <= MIN_VIA_SPACING_M) continue;
+            last = { lat: v.lat, lon: v.lon, toleranceM: MIN_JOIN_TOLERANCE_M };
+            points.push(last);
+        }
+
+        if (haversineMetres(last, to) <= Math.max(last.toleranceM, to.toleranceM)) {
+            if (last === start) warnings.push(`${leg} starts and ends at the same location, so it adds no route point.`);
+            absorb(last, to);
+            mergeName(last, cleanName(s.toCp), `${leg} To`, errors);
         } else {
             const end = { lat: to.lat, lon: to.lon, toleranceM: to.toleranceM };
             mergeName(end, cleanName(s.toCp), `${leg} To`, errors);
             points.push(end);
         }
     });
+
+    if (usedShape) warnings[0] = ROAD_SHAPE_WARNING;
 
     const distinct = new Set(points.map(p => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`));
     if (!errors.length && distinct.size < 2) errors.push('The route needs at least two different geographic points.');

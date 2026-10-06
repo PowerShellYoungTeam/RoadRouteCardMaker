@@ -1,4 +1,4 @@
-import { buildGpxRoute, defaultRouteName, escapeXml, gpxFilename, MIN_JOIN_TOLERANCE_M, resolveEndpoint, STRAIGHT_LINE_WARNING, toGpx } from './gpx';
+import { buildGpxRoute, defaultRouteName, escapeXml, gpxFilename, MIN_JOIN_TOLERANCE_M, resolveEndpoint, ROAD_SHAPE_WARNING, serialViaPoints, STRAIGHT_LINE_WARNING, toGpx } from './gpx';
 import fs from 'fs';
 import path from 'path';
 import { haversineMetres, osgbToWgs84, parseOsGridRef, toOsGridRef } from '../geo/geo';
@@ -178,6 +178,56 @@ describe('buildGpxRoute', () => {
 
         test('warns when nothing is named', () => {
             expect(buildGpxRoute([leg(A, B)]).warnings).toContain('No checkpoint names are set, so ATAK will import the route without named checkpoints.');
+        });
+    });
+
+    describe('junction mode road shape', () => {
+        const p1 = { lat: 51.40, lon: -2.40 };
+        const bend1 = { lat: 51.41, lon: -2.38 };
+        const mid = { lat: 51.42, lon: -2.36 };
+        const bend2 = { lat: 51.43, lon: -2.34 };
+        const p2 = { lat: 51.44, lon: -2.32 };
+        const bend3 = { lat: 51.45, lon: -2.30 };
+        const p3 = { lat: 51.46, lon: -2.28 };
+        const j = (fromPoint, toPoint, steps, extra = {}) => ({ overrides: {}, fromPoint, toPoint, steps, ...extra });
+        const serials = [
+            j(p1, p2, [{ start: p1, shape: [bend1] }, { start: mid, shape: [bend2] }], { fromCp: 'Start', toCp: 'J1 A4/A36' }),
+            j(p2, p3, [{ start: p2, shape: [bend3] }], { toCp: 'Finish' }),
+        ];
+
+        test('serialViaPoints lists bends and internal step starts in order', () => {
+            expect(serialViaPoints(serials[0])).toEqual([bend1, mid, bend2]);
+            expect(serialViaPoints({ steps: [{ start: p1 }] })).toBeNull();
+            expect(serialViaPoints({ ...serials[0], overrides: { to: true } })).toEqual([]);
+        });
+
+        test('inserts unnamed via points between named junctions', () => {
+            const { points, errors, warnings } = buildGpxRoute(serials);
+            expect(errors).toEqual([]);
+            expect(points.map(p => [p.lat, p.lon])).toEqual([p1, bend1, mid, bend2, p2, bend3, p3].map(p => [p.lat, p.lon]));
+            expect(points.map(p => p.name)).toEqual(['Start', undefined, undefined, undefined, 'J1 A4/A36', undefined, 'Finish']);
+            expect(warnings[0]).toBe(ROAD_SHAPE_WARNING);
+            expect(warnings).not.toContain(STRAIGHT_LINE_WARNING);
+        });
+
+        test('skips via points within 1 m of a neighbour', () => {
+            const near = { lat: p2.lat - 0.000005, lon: p2.lon }; // ~0.5 m before p2
+            const { points } = buildGpxRoute([j(p1, p2, [{ start: p1, shape: [bend1, near] }])]);
+            expect(points.map(p => [p.lat, p.lon])).toEqual([p1, bend1, p2].map(p => [p.lat, p.lon]));
+        });
+
+        test('an edited From/To drops that serial\'s shape with a warning', () => {
+            const edited = [serials[0], { ...serials[1], overrides: { to: true }, to: 'ST 760 700' }];
+            const { points, warnings } = buildGpxRoute(edited);
+            expect(points).toHaveLength(6);
+            expect(warnings).toContain('Leg 2 From/To was edited, so its road bend points were left out; it exports as a straight line.');
+        });
+
+        test('toGpx writes via points as unnamed rtept', () => {
+            const doc = parseXml(toGpx(buildGpxRoute(serials).points, { name: 'Demo' }));
+            const pts = [...doc.getElementsByTagName('rtept')];
+            expect(pts).toHaveLength(7);
+            expect(pts.filter(e => e.getElementsByTagName('name').length).length).toBe(3);
         });
     });
 

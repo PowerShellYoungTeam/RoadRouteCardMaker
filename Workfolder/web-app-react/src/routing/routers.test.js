@@ -40,6 +40,8 @@ test('normaliseValhalla', () => {
     expect(r.distanceM).toBe(12500);
     expect(r.legs[0].geometry[1][0]).toBeCloseTo(51.1, 5);
     expect(r.legs[0].steps[0]).toMatchObject({ road: 'A30', distanceM: 12500, towards: 'Salisbury' });
+    expect(r.legs[0].steps[0].geometry).toHaveLength(2);
+    expect(r.legs[0].steps[0].geometry[1][0]).toBeCloseTo(51.1, 5);
 });
 
 test('normaliseOrs', () => {
@@ -56,6 +58,7 @@ test('normaliseOrs', () => {
     expect(r.legs[0].steps[0].road).toBe('B3000');
     expect(r.legs[0].steps[1].road).toBe('');
     expect(r.legs[0].steps[0].end.lat).toBeCloseTo(51.1, 5);
+    expect(r.legs[0].steps[0].geometry).toHaveLength(2);
 });
 
 test('normaliseOsrm', () => {
@@ -71,6 +74,8 @@ test('normaliseOsrm', () => {
     });
     expect(r.truckAware).toBe(false);
     expect(r.legs[0].steps[0]).toMatchObject({ road: 'A30', instruction: 'Depart on A30', towards: 'Basingstoke' });
+    expect(r.legs[0].steps[0].geometry).toHaveLength(2);
+    expect(r.legs[0].geometry).toEqual(r.legs[0].steps[0].geometry);
 });
 
 test('route card JSON round trip', () => {

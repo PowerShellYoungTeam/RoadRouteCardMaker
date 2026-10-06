@@ -17,7 +17,8 @@ Ser | From | To | Route | Dir | Distance | Total Distance | Total Time
   - Valhalla, using truck costing (the default; no key needed).
   - OpenRouteService `driving-hgv` (needs a free API key).
   - OSRM (cars only).
-- **Automatic serials.** One serial per waypoint leg, or auto-split at major road changes. Each
+- **Automatic serials.** One serial per waypoint leg, auto-split at major road changes, or one per
+  junction (with road bends kept for the ATAK GPX). Each
   serial has a compass direction (Dir) and road summary, with locations as OS grid refs, lat/long
   or both. Every cell can be edited.
 - **HGV restriction check.** Queries OSM (Overpass) for:
@@ -31,7 +32,8 @@ Ser | From | To | Route | Dir | Distance | Total Distance | Total Time
   with PowerShell.
 - **GPX export for ATAK.** Downloads a GPX 1.1 route with optional named checkpoints. The file is
   built entirely in the browser, and personal details are left out. Points are joined by straight
-  lines, so the route does not follow roads. See the
+  lines; use the **Junctions & bends** serial mode to add named junctions and road bend points so
+  the line follows the road. See the
   [web app README](Workfolder/web-app-react/README.md#gpx-export-for-atak).
 
 ## Quick start
@@ -85,8 +87,8 @@ Clone the repo to a plain path such as `C:\dev\` to run them.
   Nominatim. The app retries across Overpass mirrors. For regular use, self-host the services or
   set your own URLs in Settings.
 - OS grid conversion is accurate to about 5 m.
-- **GPX export is not a navigation route.** The points are joined by straight lines, and the
-  export is not checked for HGV safety. ATAK import has been checked against ATAK's source code
+- **GPX export is not a navigation route.** The points are joined by straight lines (closely
+  spaced along the road in Junctions & bends mode), and the export is not checked for HGV safety. ATAK import has been checked against ATAK's source code
   only, not on a device. Use fictional or non-sensitive data for demonstrations.
 
 ## Licence and attribution

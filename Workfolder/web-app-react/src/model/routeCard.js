@@ -101,10 +101,11 @@ export function defaultSettings() {
             ors: 'https://api.openrouteservice.org',
             osrm: 'https://router.project-osrm.org',
         },
-        serialMode: 'waypoint', // 'waypoint' | 'auto'
+        serialMode: 'waypoint', // 'waypoint' | 'auto' | 'junction'
+        bendToleranceM: 20, // junction mode: max deviation (m) of GPX bend points from the router's road line
         locationFormat: 'both', // 'latlon' | 'grid' | 'both'
         units: 'km', // 'km' | 'mi'
-        timeSource: 'speed', // 'speed' (item 7) | 'router'
+        timeSource: 'speed', // 'speed' (item 6) | 'router'
         restrictionBufferMetres: 30,
         overpassUrl: '', // optional preferred/self-hosted Overpass endpoint, tried before the public mirrors
     };
