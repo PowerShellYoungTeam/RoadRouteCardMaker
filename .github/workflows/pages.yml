@@ -1,0 +1,58 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Workfolder/web-app-react/**'
+      - 'Workfolder/schema/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Workfolder/web-app-react
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Workfolder/web-app-react/package-lock.json
+      - run: npm ci
+      - name: Test
+        run: npm test -- --watchAll=false
+        env:
+          CI: true
+      - name: Build
+        run: npm run build
+        env:
+          CI: true
+          # Served from https://<owner>.github.io/<repo>/
+          PUBLIC_URL: /${{ github.event.repository.name }}
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: Workfolder/web-app-react/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

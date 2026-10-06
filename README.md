@@ -1,6 +1,9 @@
 # RoadRouteCardMaker
 
 [![CI](https://github.com/PowerShellYoungTeam/RoadRouteCardMaker/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerShellYoungTeam/RoadRouteCardMaker/actions/workflows/ci.yml)
+[![Deploy](https://github.com/PowerShellYoungTeam/RoadRouteCardMaker/actions/workflows/pages.yml/badge.svg)](https://github.com/PowerShellYoungTeam/RoadRouteCardMaker/actions/workflows/pages.yml)
+
+**Try it online: <https://powershellyoungteam.github.io/RoadRouteCardMaker/>** (no install; use fictional or non-sensitive routes only).
 
 Plan a road move on OpenStreetMap and produce a military-style **route card**: the INSTRUCTIONS
 block (items 1-16, short-form field book wording) plus the ROUTE DETAILS table. It is built with big and heavy vehicles in mind
@@ -40,7 +43,12 @@ Ser | From | To | Route | Dir | Distance | Total Distance | Total Time
 
 ## Quick start
 
-**Web app** (requires Node.js 18 or later):
+**Hosted web app:** open <https://powershellyoungteam.github.io/RoadRouteCardMaker/>. It is rebuilt and redeployed by GitHub Actions
+([`pages.yml`](.github/workflows/pages.yml)) whenever the app changes on `main`, and runs entirely in
+your browser. Cards are not stored on any server, but route planning, place search and the restriction
+check still call the public OpenStreetMap services.
+
+**Run locally** (requires Node.js 18 or later):
 
 ```powershell
 cd Workfolder\web-app-react
