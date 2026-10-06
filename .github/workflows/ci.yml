@@ -21,10 +21,10 @@ jobs:
       run:
         working-directory: Workfolder/web-app-react
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: Workfolder/web-app-react/package-lock.json
       - run: npm ci
@@ -41,7 +41,7 @@ jobs:
     name: PowerShell module (Pester)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Pester and ImportExcel
         shell: pwsh
         run: |
@@ -60,7 +60,7 @@ jobs:
           Invoke-Pester -Configuration $cfg
       - name: Upload Pester results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pester-results
           path: pester-results.xml
