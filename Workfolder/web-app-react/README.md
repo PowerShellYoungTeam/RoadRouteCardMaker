@@ -29,6 +29,13 @@ npm test
 npm run build
 ```
 
+The hosted copy at <https://powershellyoungteam.github.io/RoadRouteCardMaker/> is built and deployed by
+[`.github/workflows/pages.yml`](../../.github/workflows/pages.yml) on every push to `main` that touches
+the app. It sets `PUBLIC_URL=/RoadRouteCardMaker` so assets load from the repository sub-path; set the
+same variable if you host the build under another sub-path. The `build` folder is a static site, so you
+can also copy it to any web server or open it from a local static server for offline use (routing and
+restriction checks still need network access to their servers).
+
 ## Workflow
 
 1. Click the map, or use the search box, to add waypoints. Drag the markers to adjust them.
