@@ -1,5 +1,7 @@
 # RoadRouteCardMaker
 
+[![CI](https://github.com/PowerShellYoungTeam/RoadRouteCardMaker/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerShellYoungTeam/RoadRouteCardMaker/actions/workflows/ci.yml)
+
 Plan a road move on OpenStreetMap and produce a military-style **route card**: the INSTRUCTIONS
 block (items 1-16, short-form field book wording) plus the ROUTE DETAILS table. It is built with big and heavy vehicles in mind
 and flags height, weight and width limits along the route.
@@ -75,6 +77,9 @@ To try it without the web app, use `Workfolder\schema\sample-route-card.json`.
 cd Workfolder\web-app-react; npm test                            # Jest unit tests
 Invoke-Pester .\Workfolder\powershell\tests -Output Detailed     # Pester 5
 ```
+
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs Jest, the production build and
+Pester on every pull request and push to `main`.
 
 On Windows, Jest finds no tests if the repo path contains `\.` (for example `C:\Users\me\.copilot\...`).
 Clone the repo to a plain path such as `C:\dev\` to run them.
